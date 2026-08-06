@@ -124,6 +124,7 @@
             border: 1px solid rgba(255,255,255,0.5);
             box-shadow: 0 8px 32px rgba(0,0,0,0.05);
             margin-bottom: 16px;
+            overflow: hidden;
         }
 
         /* Step Bar */
@@ -538,9 +539,9 @@
                 <div class="progress-container"><div class="progress-bar" id="ws-prog-bar"></div></div>
                 
                 <h3 style="font-size:0.9rem; color:var(--c-text-light); margin-top:20px;">TARGET HARI INI</h3>
-                <div style="display:flex; gap:8px; margin-top:12px;">
-                    <input type="text" id="new-target-input" placeholder="Tambah target baru..." style="flex:1; padding:12px 14px; border-radius:12px; border:1px solid var(--c-border); background:rgba(255,255,255,0.8); font-family:inherit; font-size:0.9rem; outline:none;" onkeydown="if(event.key==='Enter')addTarget()">
-                    <button onclick="addTarget()" style="padding:10px 16px; border-radius:12px; border:none; background:var(--c-blue); color:#fff; font-weight:700; font-size:0.85rem; cursor:pointer; white-space:nowrap;">+ Tambah</button>
+                <div style="display:flex; gap:8px; margin-top:12px; width:100%; box-sizing:border-box;">
+                    <input type="text" id="new-target-input" placeholder="Tambah target baru..." style="flex:1; min-width:0; padding:12px 14px; border-radius:12px; border:1px solid var(--c-border); background:rgba(255,255,255,0.8); font-family:inherit; font-size:0.85rem; outline:none;" onkeydown="if(event.key==='Enter')addTarget()">
+                    <button onclick="addTarget()" style="padding:10px 14px; border-radius:12px; border:none; background:var(--c-blue); color:#fff; font-weight:700; font-size:0.8rem; cursor:pointer; white-space:nowrap; flex-shrink:0;">+ Tambah</button>
                 </div>
                 <div class="target-list" id="t-list">
                     <div class="target-item">
@@ -748,9 +749,11 @@
 
         async function initDevice() {
             try {
-                S.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-                document.getElementById('cam-v-m').srcObject = S.stream;
-                document.getElementById('cam-v-p').srcObject = S.stream;
+                S.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+                const vm = document.getElementById('cam-v-m');
+                const vp = document.getElementById('cam-v-p');
+                if (vm) { vm.srcObject = S.stream; vm.play().catch(()=>{}); }
+                if (vp) { vp.srcObject = S.stream; vp.play().catch(()=>{}); }
             } catch(e) {
                 console.log("Kamera tidak diizinkan", e);
                 showToast("Akses kamera ditolak");
@@ -762,10 +765,16 @@
                     try {
                         let res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
                         let data = await res.json();
+                        const locParts = data.address || {};
+                        S.locName = locParts.city || locParts.town || locParts.village || locParts.suburb || 'Lokasi Ditemukan';
                         S.loc = data.display_name || "Lokasi Ditemukan";
-                        document.getElementById('res-l-m').innerText = S.loc.split(',').slice(0,3).join(',');
-                    } catch(e) { S.loc = `${lat.toFixed(4)}, ${lon.toFixed(4)}`; }
-                }, () => { showToast("Akses GPS ditolak"); });
+                        document.getElementById('res-l-m').innerText = S.locName;
+                    } catch(e) {
+                        S.locName = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                        S.loc = S.locName;
+                    }
+                }, () => { showToast("Akses GPS ditolak"); },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
             }
         }
 
