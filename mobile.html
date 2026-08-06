@@ -828,7 +828,8 @@ function saveState() {
     const stateObj = {
         masuk: S.masuk, pulang: S.pulang, draft: document.getElementById('s1-2').classList.contains('done'),
         timeIn: S.timeIn, timeOut: S.timeOut, imgIn: S.imgIn, imgOut: S.imgOut,
-        targets: targets, log: document.getElementById('work-log').value.trim()
+        targets: targets, log: document.getElementById('work-log').value.trim(),
+        curTab: S.curTab
     };
     try {
         localStorage.setItem(key, JSON.stringify(stateObj));
@@ -848,6 +849,7 @@ function loadState() {
             S.imgIn = saved.imgIn; S.imgOut = saved.imgOut;
             if (saved.targets) S.loadedTargets = saved.targets;
             if (saved.log) S.loadedLog = saved.log;
+            if (saved.curTab) S.curTab = saved.curTab;
         } catch(e) {}
     }
 }
@@ -873,14 +875,15 @@ function restoreUI() {
             updateProg();
         }
         if (S.loadedLog) document.getElementById('work-log').value = S.loadedLog;
-        switchTab('workspace');
+        if (S.curTab && S.curTab !== 'masuk') switchTab(S.curTab);
+        else switchTab('workspace');
     }
     if (S.draft) {
         document.getElementById('btn-save-ws').classList.add('hidden');
         document.getElementById('pulang-section').classList.remove('hidden');
         document.getElementById('s1-2').classList.add('done');
         document.getElementById('s1-3').classList.add('active');
-        switchTab('workspace');
+        if (!S.curTab || S.curTab === 'masuk') switchTab('workspace');
     }
     if (S.pulang) {
         const cov = document.getElementById('cov-p');
