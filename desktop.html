@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script>
+// Force-clear stuck pulang state immediately on load
+(function(){try{var d=new Date(),k='youtz_state_'+d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();var r=localStorage.getItem(k);if(r){var s=JSON.parse(r);if(s.pulang){localStorage.removeItem(k);}}}catch(e){}})();
+</script>
 <title>Youtz Group Corporation — Smart Attendance Portal</title>
 <meta name="description" content="Smart Attendance Portal — Youtz Group Corporation #MedianyaAnakMuda">
 <link rel="preconnect" href="https://fonts.googleapis.com">
