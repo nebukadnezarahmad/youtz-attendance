@@ -6,7 +6,7 @@
 // ── KONFIGURASI ──
 // Ganti SPREADSHEET_ID dengan ID spreadsheet Anda
 // ID ada di URL: https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit
-const SPREADSHEET_ID = 'GANTI_DENGAN_ID_SPREADSHEET_ANDA';
+const SPREADSHEET_ID = '1UNZmzQtS8u1Lw1kzA1s275S-lVcHX0odBXLWXK6jU5Y';
 const DRIVE_FOLDER_NAME = 'Youtz-Attendance-Photos';
 
 // ── MAIN HANDLER ──
