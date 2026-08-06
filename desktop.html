@@ -569,9 +569,35 @@ body {
   .pages{padding:24px 16px 60px}.calpanel{padding:18px 16px}
   .hclock{display:none}.sh-big{font-size:28px}
 }
+    /* Login Overlay */
+    .login-overlay { position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); display: flex; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
+    .login-overlay.hidden { opacity: 0; pointer-events: none; }
+    .login-box { background: var(--gl); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 40px; width: 400px; max-width: 90%; box-shadow: 0 24px 64px rgba(0,0,0,0.4); text-align: center; }
+    .login-box h2 { color: white; margin-bottom: 8px; font-size: 1.8rem; font-weight: 800; }
+    .login-box p { color: rgba(255,255,255,0.6); margin-bottom: 24px; font-size: 0.95rem; }
+    .login-input { width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); padding: 14px 16px; border-radius: 12px; color: white; margin-bottom: 16px; font-family: inherit; font-size: 1rem; outline: none; transition: border 0.2s; }
+    .login-input:focus { border-color: var(--blu); }
+    .login-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--blu), #0056b3); color: white; font-weight: 700; font-size: 1rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 8px 24px rgba(0, 126, 212, 0.4); margin-bottom: 12px; }
+    .login-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 126, 212, 0.6); }
+    .login-error { color: #f43f5e; font-size: 0.9rem; margin-bottom: 16px; min-height: 1.2rem; display: none; }
+    
+    .btn-logout { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; margin-left: 12px; transition: all 0.2s; font-weight: 600; }
+    .btn-logout:hover { background: rgba(244, 63, 94, 0.2); border-color: #f43f5e; color: #f43f5e; }
 </style>
 </head>
 <body>
+
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <h2>Youtz Attendance</h2>
+    <p>Masuk dengan akun staf Anda</p>
+    <div class="login-error" id="login-error"></div>
+    <input type="text" id="login-name" class="login-input" placeholder="Nama Anda (Misal: Nawwa)">
+    <input type="email" id="login-email" class="login-input" placeholder="Email Anda" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Masuk</button>
+  </div>
+</div>
 
 <!-- ANIMATED BACKGROUND -->
 <div class="bg-scene">
@@ -595,9 +621,11 @@ body {
     <div class="hdr-r">
       <div class="hclock" id="hclock">--:--:--</div>
       <div class="udot">
-        <div class="uav">CW</div>
-        <div><div class="uname">Creative Writer &amp; Host</div><div class="urole">@ym.staff</div></div>
-        <span class="sbdg sb-idle" id="hstat">Belum Absen</span>
+        <div class="uav" id="disp-av">YM</div>
+        <div><div class="uname" id="disp-name">Staf</div><div class="urole">@ym.staff</div></div>
+        <button class="btn-logout" onclick="doLogout()">Keluar</button>
+      </div>
+      <span class="sbdg sb-idle" id="hstat">Belum Absen</span>
       </div>
       <div class="pstrip"><div class="psd act" id="pd1"></div><div class="psd" id="pd2"></div><div class="psd" id="pd3"></div></div>
     </div>
@@ -793,6 +821,64 @@ body {
 <div class="toast" id="toast-el"></div>
 
 <script>
+// ── LOGIN SYSTEM ──
+const USERS = {
+  "Nawwa": "nawwariyahd@gmail.com",
+  "Daffa": "kordiee29@gmail.com",
+  "Jihan": "Jihansahrani5019@gmail.com",
+  "Rinaldi": "rinaldinur39@gmail.com",
+  "Aisha": "aishamardiansyah.16@gmail.com",
+  "Syaukat": "syaukat118@gmail.com",
+  "Nurul": "rulnurulhaliza@gmail.com"
+};
+
+let STAFF_NAME = localStorage.getItem('youtz_user');
+
+function checkLogin() {
+  if (STAFF_NAME) {
+    document.getElementById('login-overlay').classList.add('hidden');
+    document.getElementById('disp-name').textContent = STAFF_NAME;
+    document.getElementById('disp-av').textContent = STAFF_NAME.substring(0, 2).toUpperCase();
+  } else {
+    document.getElementById('login-overlay').classList.remove('hidden');
+  }
+}
+
+function doLogin() {
+  const nameVal = document.getElementById('login-name').value.trim();
+  const emailVal = document.getElementById('login-email').value.trim();
+  const errEl = document.getElementById('login-error');
+  
+  if (!nameVal || !emailVal) {
+    errEl.textContent = "Nama dan Email harus diisi.";
+    errEl.style.display = 'block';
+    return;
+  }
+  
+  // Find key with case-insensitive match
+  let matchedName = Object.keys(USERS).find(k => k.toLowerCase() === nameVal.toLowerCase());
+  
+  if (matchedName && USERS[matchedName].toLowerCase() === emailVal.toLowerCase()) {
+    STAFF_NAME = matchedName;
+    localStorage.setItem('youtz_user', matchedName);
+    errEl.style.display = 'none';
+    checkLogin();
+  } else {
+    errEl.textContent = "Nama atau Email tidak cocok.";
+    errEl.style.display = 'block';
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('youtz_user');
+  STAFF_NAME = null;
+  document.getElementById('login-name').value = '';
+  document.getElementById('login-email').value = '';
+  checkLogin();
+}
+
+window.addEventListener('load', checkLogin);
+
 const S={masuk:false,pulang:false,draft:false,tMasuk:null,tPulang:null,cy:2026,cm:8,data:{}};
 const MN=['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 Object.assign(S.data,{
@@ -907,10 +993,10 @@ initDevice();
 
 // ── GOOGLE SPREADSHEET INTEGRATION ──
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwkYk8tVUV-FSy6NermteAIB-os3nwaqP0S7d4XAAQNOLkXgaa1NouR8hx05ZPTyUDv/exec';
-const STAFF_NAME = 'Creative Writer & Host';
 
 function sendToSheet(type) {
   if (!SCRIPT_URL) return;
+  if (!STAFF_NAME) return;
   
   let payload = { type: type, staffName: STAFF_NAME };
   
