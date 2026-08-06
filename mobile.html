@@ -480,7 +480,7 @@
 
                 <div id="masuk-cam-area">
                     <div class="camera-container" id="cc-m">
-                        <video id="cam-v-m" autoplay playsinline muted></video>
+                        <video id="cam-v-m" autoplay playsinline muted style="transform:scaleX(-1);"></video>
                         <div class="cam-overlay cring">
                             <div class="cam-hud-top">
                                 <div class="hud-badge hud-rec">REC</div>
@@ -570,7 +570,7 @@
                 
                 <div id="pulang-cam-area">
                     <div class="camera-container" id="cc-p">
-                        <video id="cam-v-p" autoplay playsinline muted></video>
+                        <video id="cam-v-p" autoplay playsinline muted style="transform:scaleX(-1);"></video>
                         <div class="cam-overlay cring">
                             <div class="cam-hud-top">
                                 <div class="hud-badge hud-rec">REC</div>
@@ -825,7 +825,10 @@
             const vid = document.getElementById(vidId);
             const canvas = document.createElement('canvas');
             canvas.width = vid.videoWidth; canvas.height = vid.videoHeight;
-            canvas.getContext('2d').drawImage(vid, 0, 0);
+            const ctx = canvas.getContext('2d');
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(vid, 0, 0);
             return canvas.toDataURL('image/jpeg', 0.8);
         }
 

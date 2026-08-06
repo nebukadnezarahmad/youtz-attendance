@@ -627,7 +627,7 @@ body {
     <div>
       <div class="cshell">
         <div class="ccore">
-          <video id="cam-v-m" autoplay playsinline style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:0;"></video>
+          <video id="cam-v-m" autoplay playsinline style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:0;transform:scaleX(-1);"></video>
           <div class="cbg-az"></div><div class="hgrid"></div>
           <div class="htl az">REC ●</div>
           <div class="ff az"><div class="foval az"></div>
@@ -715,7 +715,7 @@ body {
       <div>
         <div class="cshell">
           <div class="ccore">
-          <video id="cam-v-p" autoplay playsinline style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:0;"></video>
+          <video id="cam-v-p" autoplay playsinline style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:0;transform:scaleX(-1);"></video>
             <div class="cbg-pk"></div><div class="hgrid"></div>
             <div class="htl pk">REC ●</div>
             <div class="ff pk"><div class="foval pk"></div>
@@ -839,6 +839,8 @@ function captureFrame(vidId) {
   c.height = v.videoHeight || 480;
   if(c.width===0)return null;
   const ctx = c.getContext('2d');
+  ctx.translate(c.width, 0);
+  ctx.scale(-1, 1);
   ctx.drawImage(v, 0, 0, c.width, c.height);
   return c.toDataURL('image/jpeg', 0.7);
 }
