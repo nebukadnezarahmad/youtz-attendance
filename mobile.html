@@ -828,7 +828,7 @@ function saveState() {
     });
     const stateObj = {
         masuk: S.masuk, pulang: S.pulang, draft: document.getElementById('s1-2').classList.contains('done'),
-        timeIn: S.timeIn, timeOut: S.timeOut, imgIn: S.imgIn, imgOut: S.imgOut,
+        timeIn: S.timeIn, timeOut: S.timeOut, imgIn: S.imgIn, imgOut: S.imgOut, lStatus: S.lStatus,
         targets: targets, log: document.getElementById('work-log').value.trim(),
         curTab: S.curTab
     };
@@ -849,7 +849,7 @@ function loadState() {
             if (saved.pulang) { localStorage.removeItem(key); return; }
             S.masuk = saved.masuk; S.pulang = saved.pulang; S.draft = saved.draft;
             S.timeIn = saved.timeIn; S.timeOut = saved.timeOut;
-            S.imgIn = saved.imgIn; S.imgOut = saved.imgOut;
+            S.imgIn = saved.imgIn; S.imgOut = saved.imgOut; S.lStatus = saved.lStatus;
             if (saved.targets) S.loadedTargets = saved.targets;
             if (saved.log) S.loadedLog = saved.log;
             if (saved.curTab) S.curTab = saved.curTab;
@@ -862,7 +862,10 @@ function restoreUI() {
         cov.style.display = 'flex';
         cov.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.imgIn}) center/cover`;
         document.querySelectorAll('#cc-m .cring').forEach(e => e.classList.add('hidden'));
-        document.getElementById('ts-m-lbl').innerText = S.timeIn + " WIB";
+        let statText = 'On Time';
+        if (S.lStatus === 2) statText = 'Terlambat';
+        else if (S.lStatus === 1) statText = 'Terlambat (toleransi)';
+        document.getElementById('ts-m-lbl').innerText = S.timeIn + " WIB (" + statText + ")";
         document.getElementById('res-t-m').innerText = S.timeIn;
         document.getElementById('masuk-cam-area').classList.add('hidden');
         document.getElementById('masuk-result-area').classList.remove('hidden');

@@ -907,7 +907,7 @@ function saveState() {
     targets.push({ l: it.querySelector('.cl').textContent, d: it.classList.contains('ck') });
   });
   const stateObj = {
-    masuk: S.masuk, pulang: S.pulang, draft: S.draft, tMasuk: S.tMasuk, tPulang: S.tPulang,
+    masuk: S.masuk, pulang: S.pulang, draft: S.draft, tMasuk: S.tMasuk, tPulang: S.tPulang, lStatus: S.lStatus,
     masukImg: S.masukImg, pulangImg: S.pulangImg, targets: targets, log: document.getElementById('wla').value.trim()
   };
   try {
@@ -928,7 +928,7 @@ function loadState() {
       if (saved.pulang) { localStorage.removeItem(key); return; }
       S.masuk = saved.masuk; S.pulang = saved.pulang; S.draft = saved.draft;
       S.tMasuk = saved.tMasuk ? new Date(saved.tMasuk) : null; S.tPulang = saved.tPulang ? new Date(saved.tPulang) : null;
-      S.masukImg = saved.masukImg; S.pulangImg = saved.pulangImg;
+      S.masukImg = saved.masukImg; S.pulangImg = saved.pulangImg; S.lStatus = saved.lStatus;
       if (saved.targets) S.loadedTargets = saved.targets;
       if (saved.log) S.loadedLog = saved.log;
     } catch(e) {}
@@ -945,8 +945,12 @@ function restoreUI() {
     const cvicM = cvM.querySelector('.cvic'); if (cvicM) cvicM.style.display = 'none';
     const cringM = cvM.querySelector('.cring'); if (cringM) cringM.style.display = 'none';
     cvM.classList.add('show');
-    document.getElementById('chp-m').textContent = ts + ' WIB (' + (late ? 'Terlambat' : 'On Time') + ')';
-    if (late) document.getElementById('chp-m').classList.add('late');
+    
+    let statText = 'On Time';
+    if (S.lStatus === 2) statText = 'Terlambat';
+    else if (S.lStatus === 1) statText = 'Terlambat (toleransi)';
+    document.getElementById('chp-m').textContent = ts + ' WIB (' + statText + ')';
+    if (S.lStatus > 0) document.getElementById('chp-m').classList.add('late');
     document.getElementById('rc-m').classList.add('show');
     document.getElementById('next-b').style.display = 'block';
     
@@ -1011,10 +1015,10 @@ function restoreUI() {
 }
 
 function doMasuk(){if(!camReady){toast('Izinkan kamera terlebih dahulu!');return} if(!locReady){toast('Tunggu lokasi GPS terdeteksi!');return} if(S.masuk){toast('Absen masuk sudah dilakukan hari ini.');return}const b=document.getElementById('btn-m');b.textContent='Memproses...';b.disabled=true;setTimeout(()=>{const n=new Date();S.masuk=true;S.tMasuk=n; S.masukImg=captureFrame('cam-v-m');const hr = n.getHours(), mn = n.getMinutes();
-let lStatus = 0; // 0=ontime, 1=hampir, 2=late
+let lStatus = 0; // 0=ontime, 1=toleransi, 2=terlambat
 if (hr > 10 || (hr === 10 && mn > 15)) lStatus = 2;
 else if (hr === 10 && mn >= 1 && mn <= 15) lStatus = 1;
-const late = (lStatus === 2);
+S.lStatus = lStatus;
 const ts=fmt(n);document.getElementById('cts-m').textContent=ts+' WIB';const cvM = document.getElementById('cov-m');cvM.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.masukImg}) center/cover`;cvM.style.backdropFilter = 'none';const cvicM = cvM.querySelector('.cvic'); if(cvicM) cvicM.style.display = 'none';const cringM = cvM.querySelector('.cring'); if(cringM) cringM.style.display = 'none';document.getElementById('cov-m').classList.add('show');document.getElementById('chp-m').textContent=ts+' WIB ('+(late?'Terlambat':'On Time')+')';if(late)document.getElementById('chp-m').classList.add('late');document.getElementById('rc-m').classList.add('show');document.getElementById('next-b').style.display='block';const hs=document.getElementById('hstat');hs.className='sbdg sb-on';hs.textContent='Hadir';document.getElementById('tab-b').classList.remove('locked');document.getElementById('pd1').className='psd done';document.getElementById('pd2').className='psd act';b.innerHTML='Absen Masuk Berhasil<div class="arr">&#10003;</div>';b.style.background='linear-gradient(155deg,var(--grn),#047857)';b.style.boxShadow='var(--sh-gn)';b.disabled=false;if (lStatus === 2) {
     toast('Kamu terlambat, hal ini dapat mempengaruhi KPI kamu', 15000, 'var(--pk)');
 } else if (lStatus === 1) {
