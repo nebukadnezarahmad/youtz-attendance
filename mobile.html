@@ -587,7 +587,7 @@
                 </div>
                 
                 <h3 style="font-size:0.9rem; color:var(--c-text-light); margin-top:24px;">LAPORAN PEKERJAAN</h3>
-                <textarea class="textarea-custom" id="work-log" placeholder="Tuliskan detail pekerjaan yang telah diselesaikan hari ini..."></textarea>
+                <textarea class="textarea-custom" id="work-log" placeholder="Tuliskan detail pekerjaan yang telah diselesaikan hari ini..." oninput="saveState()"></textarea>
                 
                 <button class="btn btn-blue" id="btn-save-ws" onclick="saveWorkspace()">Simpan & Lanjut Absen Pulang</button>
             </div>
@@ -791,9 +791,11 @@ function doLogout() {
         // Init
         window.onload = () => {
             checkLogin();
+            loadState();
             startClock();
             initDevice();
             renderCal();
+            restoreUI();
         };
 
         function switchTab(tab) {
@@ -807,11 +809,89 @@ function doLogout() {
             document.getElementById('nav-' + tab).classList.add('active');
             S.curTab = tab;
             
-            if (tab === 'workspace' && S.masuk) {
+            if (tab === 'workspace' && S.masuk && !document.getElementById('s1-1').classList.contains('done')) {
                 document.getElementById('s1-1').classList.add('done');
                 document.getElementById('s1-2').classList.add('active');
             }
         }
+
+function saveState() {
+    const d = new Date();
+    const key = 'youtz_state_' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    const targets = [];
+    document.querySelectorAll('#t-list .target-item').forEach(it => {
+        targets.push({
+            l: it.querySelector('.target-text').innerText,
+            d: it.querySelector('.checkbox-custom').classList.contains('checked')
+        });
+    });
+    const stateObj = {
+        masuk: S.masuk, pulang: S.pulang, draft: document.getElementById('s1-2').classList.contains('done'),
+        timeIn: S.timeIn, timeOut: S.timeOut, imgIn: S.imgIn, imgOut: S.imgOut,
+        targets: targets, log: document.getElementById('work-log').value.trim()
+    };
+    localStorage.setItem(key, JSON.stringify(stateObj));
+}
+function loadState() {
+    const d = new Date();
+    const key = 'youtz_state_' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    const raw = localStorage.getItem(key);
+    if (raw) {
+        try {
+            const saved = JSON.parse(raw);
+            S.masuk = saved.masuk; S.pulang = saved.pulang; S.draft = saved.draft;
+            S.timeIn = saved.timeIn; S.timeOut = saved.timeOut;
+            S.imgIn = saved.imgIn; S.imgOut = saved.imgOut;
+            if (saved.targets) S.loadedTargets = saved.targets;
+            if (saved.log) S.loadedLog = saved.log;
+        } catch(e) {}
+    }
+}
+function restoreUI() {
+    if (S.masuk) {
+        const cov = document.getElementById('cov-m');
+        cov.style.display = 'flex';
+        cov.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.imgIn}) center/cover`;
+        document.querySelectorAll('#cc-m .cring').forEach(e => e.classList.add('hidden'));
+        document.getElementById('ts-m-lbl').innerText = S.timeIn + " WIB";
+        document.getElementById('res-t-m').innerText = S.timeIn;
+        document.getElementById('masuk-cam-area').classList.add('hidden');
+        document.getElementById('masuk-result-area').classList.remove('hidden');
+        document.getElementById('s1-1').classList.add('done');
+        document.getElementById('s1-2').classList.add('active');
+        if (S.loadedTargets && S.loadedTargets.length > 0) {
+            const list = document.getElementById('t-list'); list.innerHTML = '';
+            S.loadedTargets.forEach(t => {
+                const item = document.createElement('div'); item.className = 'target-item';
+                item.innerHTML = '<div class="checkbox-custom ' + (t.d ? 'checked' : '') + '" onclick="toggleCheck(this)"></div><div class="target-text">' + t.l + '</div><div class="target-del" onclick="delTarget(this)" style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-text-light); font-size:16px; flex-shrink:0; margin-left:auto;">&#10005;</div>';
+                list.appendChild(item);
+            });
+            updateProg();
+        }
+        if (S.loadedLog) document.getElementById('work-log').value = S.loadedLog;
+        switchTab('workspace');
+    }
+    if (S.draft) {
+        document.getElementById('btn-save-ws').classList.add('hidden');
+        document.getElementById('pulang-section').classList.remove('hidden');
+        document.getElementById('s1-2').classList.add('done');
+        document.getElementById('s1-3').classList.add('active');
+        switchTab('workspace');
+    }
+    if (S.pulang) {
+        const cov = document.getElementById('cov-p');
+        cov.style.display = 'flex';
+        cov.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.imgOut}) center/cover`;
+        document.querySelectorAll('#cc-p .cring').forEach(e => e.classList.add('hidden'));
+        document.getElementById('ts-p-lbl').innerText = S.timeOut + " WIB";
+        document.getElementById('res-t-p').innerText = S.timeOut;
+        document.getElementById('pulang-cam-area').classList.add('hidden');
+        document.getElementById('pulang-result-area').classList.remove('hidden');
+        document.getElementById('s1-3').classList.add('done');
+        document.getElementById('s1-3').classList.remove('active');
+        switchTab('history');
+    }
+}
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -932,12 +1012,14 @@ function doLogout() {
             document.getElementById('masuk-result-area').classList.remove('hidden');
             
             showToast("Absen Masuk Berhasil!");
+            saveState();
             sendToSheet('masuk');
         }
 
         function toggleCheck(el) {
             el.classList.toggle('checked');
             updateProg();
+            saveState();
         }
 
         function addTarget() {
@@ -950,6 +1032,7 @@ function doLogout() {
             document.getElementById('t-list').appendChild(item);
             inp.value = '';
             updateProg();
+            saveState();
             showToast('Target baru ditambahkan.');
         }
 
@@ -958,6 +1041,7 @@ function doLogout() {
             if (item) {
                 item.remove();
                 updateProg();
+                saveState();
                 showToast('Target dihapus.');
             }
         }
@@ -966,7 +1050,7 @@ function doLogout() {
             const checks = document.querySelectorAll('.checkbox-custom');
             let sel = 0;
             checks.forEach(c => { if(c.classList.contains('checked')) sel++; });
-            const p = Math.round((sel / checks.length) * 100);
+            const p = checks.length ? Math.round((sel / checks.length) * 100) : 0;
             document.getElementById('ws-prog-bar').style.width = p + '%';
             document.getElementById('ws-prog-text').innerText = p + '% Selesai';
         }
@@ -987,6 +1071,7 @@ function doLogout() {
             setTimeout(() => {
                 document.getElementById('pulang-section').scrollIntoView({behavior: 'smooth'});
             }, 100);
+            saveState();
             showToast("Workspace Tersimpan!");
         }
 
@@ -1011,6 +1096,7 @@ function doLogout() {
             document.getElementById('s1-3').classList.remove('active');
             
             saveToCal();
+            saveState();
             showToast("Absen Pulang Berhasil!");
             sendToSheet('pulang');
         }
