@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Youtz Media Smart Attendance - Mobile</title>
+    <title>Youtz Group Corporation Smart Attendance - Mobile</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -481,7 +481,7 @@
     <div class="app-container">
         <header class="header">
             <div>
-                <div class="header-title" id="disp-name">Youtz Media</div>
+                <div class="header-title" id="disp-name">Youtz Group Corporation</div>
                 <button class="btn-logout-m" onclick="doLogout()">Keluar</button>
             </div>
             <div class="clock mono" id="live-clock">00:00</div>
@@ -581,7 +581,7 @@
                     </div>
                     <div class="target-item">
                         <div class="checkbox-custom" onclick="toggleCheck(this)"></div>
-                        <div class="target-text">Editing Video Pitch Deck Youtz Media</div>
+                        <div class="target-text">Editing Video Pitch Deck Youtz Group Corporation</div>
                         <div class="target-del" onclick="delTarget(this)" style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-text-light); font-size:16px; flex-shrink:0; margin-left:auto;">&#10005;</div>
                     </div>
                 </div>
@@ -900,11 +900,13 @@ function restoreUI() {
     }
 }
 
-        function showToast(msg) {
+        let _toastT; function showToast(msg, dur=3000, bg='') {
             const t = document.getElementById('toast');
             t.textContent = msg;
+            if(bg){ t.style.background = bg; t.style.color = '#fff'; } else { t.style.background = ''; t.style.color = ''; }
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
+            clearTimeout(_toastT);
+            _toastT = setTimeout(() => t.classList.remove('show'), dur);
         }
 
         function startClock() {

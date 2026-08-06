@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════════════
-// YOUTZ MEDIA — SMART ATTENDANCE: Google Apps Script Backend
+// Youtz Group Corporation — SMART ATTENDANCE: Google Apps Script Backend
 // Deploy sebagai Web App (Execute as: Me, Access: Anyone)
 // ══════════════════════════════════════════════════════════════
 

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Youtz Media — Smart Attendance Portal</title>
-<meta name="description" content="Smart Attendance Portal — Youtz Media #MedianyaAnakMuda">
+<title>Youtz Group Corporation — Smart Attendance Portal</title>
+<meta name="description" content="Smart Attendance Portal — Youtz Group Corporation #MedianyaAnakMuda">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -611,7 +611,7 @@ body {
   <div class="hdr-in">
     <div class="brand">
       <div class="bmark">YM</div>
-      <div><div class="bname">Youtz Media</div><div class="btag">#MedianyaAnakMuda</div></div>
+      <div><div class="bname">Youtz Group Corporation</div><div class="btag">#MedianyaAnakMuda</div></div>
     </div>
     <nav class="hnav">
       <div class="hl active" id="tab-a" onclick="gTab('a')">Absen Masuk</div>
@@ -715,7 +715,7 @@ body {
         <div class="clist" id="clist">
           <div class="ci ck" onclick="tg(this)"><div class="cbox"><span class="cbi">✓</span></div><div class="ctxt"><div class="cl">Liputan Event Youth Community Festival</div><span class="ctag done">Selesai</span></div></div>
           <div class="ci ck" onclick="tg(this)"><div class="cbox"><span class="cbi">✓</span></div><div class="ctxt"><div class="cl">Drafting Script Video Reels TikTok @youtzmedia</div><span class="ctag done">Selesai</span></div></div>
-          <div class="ci" onclick="tg(this)"><div class="cbox"><span class="cbi">✓</span></div><div class="ctxt"><div class="cl">Editing Video Pitch Deck Youtz Media</div><span class="ctag ip">In Progress</span></div></div>
+          <div class="ci" onclick="tg(this)"><div class="cbox"><span class="cbi">✓</span></div><div class="ctxt"><div class="cl">Editing Video Pitch Deck Youtz Group Corporation</div><span class="ctag ip">In Progress</span></div></div>
         </div>
         <div class="pbwrap"><div class="pb" id="pbar" style="width:66.6%"></div></div>
         <div class="pblbl"><span>Progress</span><span id="ppct">66.6%</span></div>
@@ -892,7 +892,7 @@ Object.assign(S.data,{
 });
 function tick(){const n=new Date(),p=v=>String(v).padStart(2,'0');document.getElementById('hclock').textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());document.getElementById('sh-jam').textContent=p(n.getHours())+':'+p(n.getMinutes())}
 setInterval(tick,1000);tick();
-let _tt;function toast(m){const e=document.getElementById('toast-el');e.textContent=m;e.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>e.classList.remove('show'),3200)}
+let _tt;function toast(m, dur=3200, bg=''){const e=document.getElementById('toast-el');e.textContent=m;if(bg){e.style.background=bg;e.style.color='#fff';}else{e.style.background='';e.style.color='';}e.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>e.classList.remove('show'),dur)}
 const ro=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target)}}),{threshold:0.1});
 function arev(){document.querySelectorAll('.reveal:not(.in)').forEach(el=>ro.observe(el))}arev();
 function gTab(id){if(id==='b'&&!S.masuk){toast('Lakukan absen masuk terlebih dahulu.');return}['a','b','c'].forEach(t=>{document.getElementById('tab-'+t).classList.toggle('active',t===id);document.getElementById('page-'+t).classList.toggle('active',t===id)});if(id==='c')renderCal();requestAnimationFrame(arev)}
@@ -1006,7 +1006,18 @@ function restoreUI() {
   }
 }
 
-function doMasuk(){if(!camReady){toast('Izinkan kamera terlebih dahulu!');return} if(!locReady){toast('Tunggu lokasi GPS terdeteksi!');return} if(S.masuk){toast('Absen masuk sudah dilakukan hari ini.');return}const b=document.getElementById('btn-m');b.textContent='Memproses...';b.disabled=true;setTimeout(()=>{const n=new Date();S.masuk=true;S.tMasuk=n; S.masukImg=captureFrame('cam-v-m');const ts=fmt(n),late=n.getHours()>=9;document.getElementById('cts-m').textContent=ts+' WIB';const cvM = document.getElementById('cov-m');cvM.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.masukImg}) center/cover`;cvM.style.backdropFilter = 'none';const cvicM = cvM.querySelector('.cvic'); if(cvicM) cvicM.style.display = 'none';const cringM = cvM.querySelector('.cring'); if(cringM) cringM.style.display = 'none';document.getElementById('cov-m').classList.add('show');document.getElementById('chp-m').textContent=ts+' WIB ('+(late?'Terlambat':'On Time')+')';if(late)document.getElementById('chp-m').classList.add('late');document.getElementById('rc-m').classList.add('show');document.getElementById('next-b').style.display='block';const hs=document.getElementById('hstat');hs.className='sbdg sb-on';hs.textContent='Hadir';document.getElementById('tab-b').classList.remove('locked');document.getElementById('pd1').className='psd done';document.getElementById('pd2').className='psd act';b.innerHTML='Absen Masuk Berhasil<div class="arr">&#10003;</div>';b.style.background='linear-gradient(155deg,var(--grn),#047857)';b.style.boxShadow='var(--sh-gn)';b.disabled=false;toast('Absen Masuk berhasil — '+ts+' WIB · '+(late?'Terlambat':'On Time'));saveState();sendToSheet('masuk');},1800)}
+function doMasuk(){if(!camReady){toast('Izinkan kamera terlebih dahulu!');return} if(!locReady){toast('Tunggu lokasi GPS terdeteksi!');return} if(S.masuk){toast('Absen masuk sudah dilakukan hari ini.');return}const b=document.getElementById('btn-m');b.textContent='Memproses...';b.disabled=true;setTimeout(()=>{const n=new Date();S.masuk=true;S.tMasuk=n; S.masukImg=captureFrame('cam-v-m');const hr = n.getHours(), mn = n.getMinutes();
+let lStatus = 0; // 0=ontime, 1=hampir, 2=late
+if (hr > 10 || (hr === 10 && mn > 15)) lStatus = 2;
+else if (hr === 10 && mn >= 1 && mn <= 15) lStatus = 1;
+const late = (lStatus === 2);
+const ts=fmt(n);document.getElementById('cts-m').textContent=ts+' WIB';const cvM = document.getElementById('cov-m');cvM.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.masukImg}) center/cover`;cvM.style.backdropFilter = 'none';const cvicM = cvM.querySelector('.cvic'); if(cvicM) cvicM.style.display = 'none';const cringM = cvM.querySelector('.cring'); if(cringM) cringM.style.display = 'none';document.getElementById('cov-m').classList.add('show');document.getElementById('chp-m').textContent=ts+' WIB ('+(late?'Terlambat':'On Time')+')';if(late)document.getElementById('chp-m').classList.add('late');document.getElementById('rc-m').classList.add('show');document.getElementById('next-b').style.display='block';const hs=document.getElementById('hstat');hs.className='sbdg sb-on';hs.textContent='Hadir';document.getElementById('tab-b').classList.remove('locked');document.getElementById('pd1').className='psd done';document.getElementById('pd2').className='psd act';b.innerHTML='Absen Masuk Berhasil<div class="arr">&#10003;</div>';b.style.background='linear-gradient(155deg,var(--grn),#047857)';b.style.boxShadow='var(--sh-gn)';b.disabled=false;if (lStatus === 2) {
+    toast('Kamu terlambat, hal ini dapat mempengaruhi KPI kamu', 15000, 'var(--pk)');
+} else if (lStatus === 1) {
+    toast('Kamu hampir terlambat, toleransi keterlambatan diberikan, jangan terlambat lagi yaa', 15000, 'var(--pk)');
+} else {
+    toast('Kerja bagus! Terima kasih sudah datang tepat waktu hari ini, mari pertahankan semangatnya!', 15000, 'var(--pk)');
+}saveState();sendToSheet('masuk');},1800)}
 function tg(el){el.classList.toggle('ck');const tag=el.querySelector('.ctag');if(el.classList.contains('ck')){tag.className='ctag done';tag.textContent='Selesai'}else{tag.className='ctag ip';tag.textContent='In Progress'}upP();saveState();}
 function upP(){const all=document.querySelectorAll('#clist .ci'),ck=document.querySelectorAll('#clist .ci.ck');const pct=all.length?Math.round(ck.length/all.length*1000)/10:0;document.getElementById('pbar').style.width=pct+'%';document.getElementById('ppct').textContent=pct+'%';if(document.getElementById('sh-pct'))document.getElementById('sh-pct').textContent=pct+'%';document.getElementById('tcnt').textContent=all.length;document.getElementById('tnb').textContent=all.length;document.getElementById('sp-done').textContent=ck.length;document.getElementById('sp-all').textContent=all.length}
 function addT(){const inp=document.getElementById('nti'),v=inp.value.trim();if(!v)return;const l=document.getElementById('clist'),el=document.createElement('div');el.className='ci';el.onclick=function(){tg(this)};el.innerHTML='<div class="cbox"><span class="cbi">&#10003;</span></div><div class="ctxt"><div class="cl">'+v+'</div><span class="ctag ip">In Progress</span></div>';l.appendChild(el);inp.value='';upP();saveState();toast('Target baru ditambahkan.')}
