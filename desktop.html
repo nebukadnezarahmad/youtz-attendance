@@ -904,11 +904,11 @@ function updateLoc(txt) {
 initDevice();
 
 // ── GOOGLE SPREADSHEET INTEGRATION ──
-const SCRIPT_URL = 'GANTI_DENGAN_URL_APPS_SCRIPT';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwkYk8tVUV-FSy6NermteAIB-os3nwaqP0S7d4XAAQNOLkXgaa1NouR8hx05ZPTyUDv/exec';
 const STAFF_NAME = 'Creative Writer & Host';
 
 function sendToSheet(type) {
-  if (SCRIPT_URL === 'GANTI_DENGAN_URL_APPS_SCRIPT') return;
+  if (!SCRIPT_URL) return;
   
   let payload = { type: type, staffName: STAFF_NAME };
   
