@@ -795,6 +795,7 @@
             document.getElementById('masuk-result-area').classList.remove('hidden');
             
             showToast("Absen Masuk Berhasil!");
+            sendToSheet('masuk');
         }
 
         function toggleCheck(el) {
@@ -874,6 +875,7 @@
             
             saveToCal();
             showToast("Absen Pulang Berhasil!");
+            sendToSheet('pulang');
         }
 
         function saveToCal() {
@@ -974,6 +976,46 @@
             document.getElementById('mod-sheet').classList.remove('show');
             setTimeout(()=>document.getElementById('mod-overlay').classList.remove('show'), 300);
         }
+// ── GOOGLE SPREADSHEET INTEGRATION ──
+const SCRIPT_URL = 'GANTI_DENGAN_URL_APPS_SCRIPT';
+const STAFF_NAME = 'Creative Writer & Host';
+
+function sendToSheet(type) {
+  if (SCRIPT_URL === 'GANTI_DENGAN_URL_APPS_SCRIPT') return;
+  
+  let payload = { type: type, staffName: STAFF_NAME };
+  
+  if (type === 'masuk') {
+    payload.jamMasuk = S.timeIn;
+    payload.lokasi = S.locName || 'Lokasi Tidak Diketahui';
+    payload.fotoMasuk = S.imgIn || '';
+  } else if (type === 'pulang') {
+    payload.jamPulang = S.timeOut;
+    payload.lokasi = S.locName || 'Lokasi Tidak Diketahui';
+    payload.fotoPulang = S.imgOut || '';
+    const items = document.querySelectorAll('#t-list .target-item');
+    payload.targets = [];
+    items.forEach(it => {
+      payload.targets.push({
+        label: it.querySelector('.target-text').textContent,
+        done: it.querySelector('.checkbox-custom').classList.contains('checked')
+      });
+    });
+    payload.laporan = document.getElementById('work-log').value.trim();
+  }
+  
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  }).then(() => {
+    console.log('Data ' + type + ' terkirim ke spreadsheet.');
+  }).catch(err => {
+    console.error('Gagal kirim ke spreadsheet:', err);
+  });
+}
+
     </script>
 </body>
 </html>

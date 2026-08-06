@@ -807,13 +807,13 @@ const ro=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecti
 function arev(){document.querySelectorAll('.reveal:not(.in)').forEach(el=>ro.observe(el))}arev();
 function gTab(id){if(id==='b'&&!S.masuk){toast('Lakukan absen masuk terlebih dahulu.');return}['a','b','c'].forEach(t=>{document.getElementById('tab-'+t).classList.toggle('active',t===id);document.getElementById('page-'+t).classList.toggle('active',t===id)});if(id==='c')renderCal();requestAnimationFrame(arev)}
 function wsTab(id){['tgt','log'].forEach(t=>{document.getElementById('wt-'+t).classList.toggle('active',t===id);document.getElementById('wp-'+t).classList.toggle('active',t===id)})}
-function doMasuk(){if(!camReady){toast('Izinkan kamera terlebih dahulu!');return} if(!locReady){toast('Tunggu lokasi GPS terdeteksi!');return} if(S.masuk){toast('Absen masuk sudah dilakukan hari ini.');return}const b=document.getElementById('btn-m');b.textContent='Memproses...';b.disabled=true;setTimeout(()=>{const n=new Date();S.masuk=true;S.tMasuk=n; S.masukImg=captureFrame('cam-v-m');const ts=fmt(n),late=n.getHours()>=9;document.getElementById('cts-m').textContent=ts+' WIB';const cvM = document.getElementById('cov-m');cvM.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.masukImg}) center/cover`;cvM.style.backdropFilter = 'none';const cvicM = cvM.querySelector('.cvic'); if(cvicM) cvicM.style.display = 'none';const cringM = cvM.querySelector('.cring'); if(cringM) cringM.style.display = 'none';document.getElementById('cov-m').classList.add('show');document.getElementById('chp-m').textContent=ts+' WIB ('+(late?'Terlambat':'On Time')+')';if(late)document.getElementById('chp-m').classList.add('late');document.getElementById('rc-m').classList.add('show');document.getElementById('next-b').style.display='block';const hs=document.getElementById('hstat');hs.className='sbdg sb-on';hs.textContent='Hadir';document.getElementById('tab-b').classList.remove('locked');document.getElementById('pd1').className='psd done';document.getElementById('pd2').className='psd act';b.innerHTML='Absen Masuk Berhasil<div class="arr">&#10003;</div>';b.style.background='linear-gradient(155deg,var(--grn),#047857)';b.style.boxShadow='var(--sh-gn)';b.disabled=false;toast('Absen Masuk berhasil — '+ts+' WIB · '+(late?'Terlambat':'On Time'));},1800)}
+function doMasuk(){if(!camReady){toast('Izinkan kamera terlebih dahulu!');return} if(!locReady){toast('Tunggu lokasi GPS terdeteksi!');return} if(S.masuk){toast('Absen masuk sudah dilakukan hari ini.');return}const b=document.getElementById('btn-m');b.textContent='Memproses...';b.disabled=true;setTimeout(()=>{const n=new Date();S.masuk=true;S.tMasuk=n; S.masukImg=captureFrame('cam-v-m');const ts=fmt(n),late=n.getHours()>=9;document.getElementById('cts-m').textContent=ts+' WIB';const cvM = document.getElementById('cov-m');cvM.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.masukImg}) center/cover`;cvM.style.backdropFilter = 'none';const cvicM = cvM.querySelector('.cvic'); if(cvicM) cvicM.style.display = 'none';const cringM = cvM.querySelector('.cring'); if(cringM) cringM.style.display = 'none';document.getElementById('cov-m').classList.add('show');document.getElementById('chp-m').textContent=ts+' WIB ('+(late?'Terlambat':'On Time')+')';if(late)document.getElementById('chp-m').classList.add('late');document.getElementById('rc-m').classList.add('show');document.getElementById('next-b').style.display='block';const hs=document.getElementById('hstat');hs.className='sbdg sb-on';hs.textContent='Hadir';document.getElementById('tab-b').classList.remove('locked');document.getElementById('pd1').className='psd done';document.getElementById('pd2').className='psd act';b.innerHTML='Absen Masuk Berhasil<div class="arr">&#10003;</div>';b.style.background='linear-gradient(155deg,var(--grn),#047857)';b.style.boxShadow='var(--sh-gn)';b.disabled=false;toast('Absen Masuk berhasil — '+ts+' WIB · '+(late?'Terlambat':'On Time'));sendToSheet('masuk');},1800)}
 function tg(el){el.classList.toggle('ck');const tag=el.querySelector('.ctag');if(el.classList.contains('ck')){tag.className='ctag done';tag.textContent='Selesai'}else{tag.className='ctag ip';tag.textContent='In Progress'}upP()}
 function upP(){const all=document.querySelectorAll('#clist .ci'),ck=document.querySelectorAll('#clist .ci.ck');const pct=all.length?Math.round(ck.length/all.length*1000)/10:0;document.getElementById('pbar').style.width=pct+'%';document.getElementById('ppct').textContent=pct+'%';if(document.getElementById('sh-pct'))document.getElementById('sh-pct').textContent=pct+'%';document.getElementById('tcnt').textContent=all.length;document.getElementById('tnb').textContent=all.length;document.getElementById('sp-done').textContent=ck.length;document.getElementById('sp-all').textContent=all.length}
 function addT(){const inp=document.getElementById('nti'),v=inp.value.trim();if(!v)return;const l=document.getElementById('clist'),el=document.createElement('div');el.className='ci';el.onclick=function(){tg(this)};el.innerHTML='<div class="cbox"><span class="cbi">&#10003;</span></div><div class="ctxt"><div class="cl">'+v+'</div><span class="ctag ip">In Progress</span></div>';l.appendChild(el);inp.value='';upP();toast('Target baru ditambahkan.')}
 function ucc(){document.getElementById('cc').textContent=document.getElementById('wla').value.length+' karakter'}
 function saveDraft(){const log=document.getElementById('wla').value.trim();if(!log){toast('Tuliskan laporan pekerjaan terlebih dahulu.');return}S.draft=true;document.getElementById('sp-log').textContent=log.substring(0,200)+(log.length>200?'...':'');upP();const ps=document.getElementById('ps');ps.classList.add('show');ps.scrollIntoView({behavior:'smooth',block:'start'});const b=document.getElementById('btn-draft');b.textContent='Draft Tersimpan';b.style.background='linear-gradient(155deg,var(--grn),#047857)';b.disabled=true;document.getElementById('pd3').className='psd act';toast('Draft tersimpan — Form Absen Pulang sudah aktif.')}
-function doPulang(){if(!camReady){toast('Izinkan kamera terlebih dahulu!');return} if(!locReady){toast('Tunggu lokasi GPS terdeteksi!');return} if(!S.masuk){toast('Lakukan absen masuk terlebih dahulu.');return}if(!S.draft){toast('Simpan laporan pekerjaan terlebih dahulu.');return}if(S.pulang){toast('Absen pulang sudah dilakukan.');return}const b=document.getElementById('btn-p');b.textContent='Memproses...';b.disabled=true;setTimeout(()=>{const n=new Date();S.pulang=true;S.tPulang=n; S.pulangImg=captureFrame('cam-v-p');const ts=fmt(n);document.getElementById('cts-p').textContent=ts+' WIB';const cvP = document.getElementById('cov-p');cvP.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.pulangImg}) center/cover`;cvP.style.backdropFilter = 'none';const cvicP = cvP.querySelector('.cvic'); if(cvicP) cvicP.style.display = 'none';const cringP = cvP.querySelector('.cring'); if(cringP) cringP.style.display = 'none';document.getElementById('cov-p').classList.add('show');document.getElementById('chp-p').textContent=ts+' WIB';document.getElementById('rc-p').classList.add('show');document.getElementById('go-cal').style.display='block';document.getElementById('sl-b').classList.add('done');document.getElementById('pd2').className='psd done';document.getElementById('pd3').className='psd done';b.innerHTML='Absen Pulang Berhasil<div class="arr">&#10003;</div>';b.style.background='linear-gradient(155deg,var(--grn),#047857)';b.style.boxShadow='var(--sh-gn)';b.disabled=false;saveToCal();toast('Absen Pulang berhasil — '+ts+' WIB · Tersimpan ke kalender.');},1800)}
+function doPulang(){if(!camReady){toast('Izinkan kamera terlebih dahulu!');return} if(!locReady){toast('Tunggu lokasi GPS terdeteksi!');return} if(!S.masuk){toast('Lakukan absen masuk terlebih dahulu.');return}if(!S.draft){toast('Simpan laporan pekerjaan terlebih dahulu.');return}if(S.pulang){toast('Absen pulang sudah dilakukan.');return}const b=document.getElementById('btn-p');b.textContent='Memproses...';b.disabled=true;setTimeout(()=>{const n=new Date();S.pulang=true;S.tPulang=n; S.pulangImg=captureFrame('cam-v-p');const ts=fmt(n);document.getElementById('cts-p').textContent=ts+' WIB';const cvP = document.getElementById('cov-p');cvP.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.pulangImg}) center/cover`;cvP.style.backdropFilter = 'none';const cvicP = cvP.querySelector('.cvic'); if(cvicP) cvicP.style.display = 'none';const cringP = cvP.querySelector('.cring'); if(cringP) cringP.style.display = 'none';document.getElementById('cov-p').classList.add('show');document.getElementById('chp-p').textContent=ts+' WIB';document.getElementById('rc-p').classList.add('show');document.getElementById('go-cal').style.display='block';document.getElementById('sl-b').classList.add('done');document.getElementById('pd2').className='psd done';document.getElementById('pd3').className='psd done';b.innerHTML='Absen Pulang Berhasil<div class="arr">&#10003;</div>';b.style.background='linear-gradient(155deg,var(--grn),#047857)';b.style.boxShadow='var(--sh-gn)';b.disabled=false;saveToCal();toast('Absen Pulang berhasil — '+ts+' WIB · Tersimpan ke kalender.');sendToSheet('pulang');},1800)}
 function saveToCal(){const t=new Date(),key=t.getFullYear()+'-'+(t.getMonth()+1)+'-'+t.getDate();const items=document.querySelectorAll('#clist .ci'),targets=[];items.forEach(it=>targets.push({l:it.querySelector('.cl').textContent,d:it.classList.contains('ck')}));S.data[key]={masuk:fmt(S.tMasuk),pulang:fmt(S.tPulang),targets,log:document.getElementById('wla').value.trim(), masukImg: S.masukImg, pulangImg: S.pulangImg}}
 function renderCal(){const y=S.cy,m=S.cm;document.getElementById('caltit').textContent=MN[m]+' '+y;const g=document.getElementById('cg');g.innerHTML='';const fd=new Date(y,m-1,1).getDay(),dim=new Date(y,m,0).getDate(),dip=new Date(y,m-1,0).getDate();for(let i=fd-1;i>=0;i--)g.appendChild(mkD(dip-i,true,false,false,false,null));const tn=new Date();let any=false;for(let day=1;day<=dim;day++){const key=y+'-'+m+'-'+day,rec=S.data[key];const isTd=(y===tn.getFullYear()&&m===tn.getMonth()+1&&day===tn.getDate());const isWk=new Date(y,m-1,day).getDay()%6===0;let dot=null;if(rec){any=true;dot=(isTd&&!S.pulang)?'p':'g'}const d=mkD(day,false,isTd,isWk,!!rec,dot);if(rec)d.onclick=()=>openM(key);g.appendChild(d)}const tot=fd+dim,rem=7-(tot%7);if(rem<7)for(let i=1;i<=rem;i++)g.appendChild(mkD(i,true,false,false,false,null));document.getElementById('calhint').style.display=any?'none':'block'}
 function mkD(n,other,today,wknd,hd,dot){const d=document.createElement('div');d.className='cday'+(other?' other':'')+(today?' today':'')+(wknd&&!today?' wknd':'')+(hd?' hd':'');let h='<span class="cdn">'+n+'</span>';if(dot)h+='<div class="cdot '+dot+'"></div>';d.innerHTML=h;return d}
@@ -902,6 +902,47 @@ function updateLoc(txt) {
   if(lp) lp.textContent = txt;
 }
 initDevice();
+
+// ── GOOGLE SPREADSHEET INTEGRATION ──
+const SCRIPT_URL = 'GANTI_DENGAN_URL_APPS_SCRIPT';
+const STAFF_NAME = 'Creative Writer & Host';
+
+function sendToSheet(type) {
+  if (SCRIPT_URL === 'GANTI_DENGAN_URL_APPS_SCRIPT') return;
+  
+  let payload = { type: type, staffName: STAFF_NAME };
+  
+  if (type === 'masuk') {
+    payload.jamMasuk = fmt(S.tMasuk);
+    payload.lokasi = locName;
+    payload.fotoMasuk = S.masukImg || '';
+  } else if (type === 'pulang') {
+    payload.jamPulang = fmt(S.tPulang);
+    payload.lokasi = locName;
+    payload.fotoPulang = S.pulangImg || '';
+    // Kumpulkan target
+    const items = document.querySelectorAll('#clist .ci');
+    payload.targets = [];
+    items.forEach(it => {
+      payload.targets.push({
+        label: it.querySelector('.cl').textContent,
+        done: it.classList.contains('ck')
+      });
+    });
+    payload.laporan = document.getElementById('wla').value.trim();
+  }
+  
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  }).then(() => {
+    console.log('Data ' + type + ' terkirim ke spreadsheet.');
+  }).catch(err => {
+    console.error('Gagal kirim ke spreadsheet:', err);
+  });
+}
 
 </script>
 </body>
