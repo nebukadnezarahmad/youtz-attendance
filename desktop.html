@@ -909,7 +909,11 @@ function saveState() {
     masuk: S.masuk, pulang: S.pulang, draft: S.draft, tMasuk: S.tMasuk, tPulang: S.tPulang,
     masukImg: S.masukImg, pulangImg: S.pulangImg, targets: targets, log: document.getElementById('wla').value.trim()
   };
-  localStorage.setItem(key, JSON.stringify(stateObj));
+  try {
+      localStorage.setItem(key, JSON.stringify(stateObj));
+  } catch(e) {
+      toast("Gagal menyimpan memori (Quota Penuh).");
+  }
 }
 function loadState() {
   const d = new Date();
@@ -1030,14 +1034,16 @@ function captureFrame(vidId) {
   const v = document.getElementById(vidId);
   if(!v) return null;
   const c = document.createElement('canvas');
-  c.width = v.videoWidth || 640;
-  c.height = v.videoHeight || 480;
+  let w = v.videoWidth || 640;
+  let h = v.videoHeight || 480;
+  if (w > 640) { h = Math.round((640 / w) * h); w = 640; }
+  c.width = w; c.height = h;
   if(c.width===0)return null;
   const ctx = c.getContext('2d');
   ctx.translate(c.width, 0);
   ctx.scale(-1, 1);
   ctx.drawImage(v, 0, 0, c.width, c.height);
-  return c.toDataURL('image/jpeg', 0.7);
+  return c.toDataURL('image/jpeg', 0.6);
 }
 
 // ── WEB APIS: CAMERA & GEOLOCATION ──
