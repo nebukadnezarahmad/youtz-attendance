@@ -748,17 +748,19 @@
         }
 
         async function initDevice() {
+            // Camera
             try {
-                S.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
-                const vm = document.getElementById('cam-v-m');
-                const vp = document.getElementById('cam-v-p');
-                if (vm) { vm.srcObject = S.stream; vm.play().catch(()=>{}); }
-                if (vp) { vp.srcObject = S.stream; vp.play().catch(()=>{}); }
+                S.stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, 
+                    audio: false 
+                });
+                attachStream();
             } catch(e) {
                 console.log("Kamera tidak diizinkan", e);
-                showToast("Akses kamera ditolak");
+                showToast("Akses kamera ditolak. Beri izin di pengaturan browser.");
             }
             
+            // Geolocation
             if("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(async pos => {
                     const lat = pos.coords.latitude, lon = pos.coords.longitude;
@@ -777,6 +779,49 @@
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
             }
         }
+
+        function attachStream() {
+            if (!S.stream) return;
+            const videos = ['cam-v-m', 'cam-v-p'];
+            videos.forEach(id => {
+                const v = document.getElementById(id);
+                if (!v) return;
+                // Only re-attach if not already playing
+                if (!v.srcObject || v.srcObject.id !== S.stream.id) {
+                    v.srcObject = S.stream;
+                }
+                v.setAttribute('autoplay', '');
+                v.setAttribute('playsinline', '');
+                v.setAttribute('muted', '');
+                v.muted = true;
+                // Force play - needed on mobile browsers
+                const playPromise = v.play();
+                if (playPromise) {
+                    playPromise.catch(() => {
+                        // Autoplay blocked - will retry on user interaction
+                        document.addEventListener('touchstart', function retryPlay() {
+                            v.play().catch(()=>{});
+                            document.removeEventListener('touchstart', retryPlay);
+                        }, { once: true });
+                    });
+                }
+            });
+        }
+
+        // Re-attach stream when switching tabs (video might lose stream when hidden)
+        const origSwitchTab = switchTab;
+        switchTab = function(tab) {
+            origSwitchTab(tab);
+            // Small delay to let DOM update, then re-attach camera
+            setTimeout(() => attachStream(), 100);
+        };
+
+        // Also re-attach on visibility change (when coming back to the tab)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && S.stream) {
+                setTimeout(() => attachStream(), 200);
+            }
+        });
 
         function captureFrame(vidId) {
             const vid = document.getElementById(vidId);
