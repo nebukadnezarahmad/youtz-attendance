@@ -709,6 +709,10 @@
         };
 
         function switchTab(tab) {
+            if (tab === 'workspace' && !S.masuk) {
+                showToast('Lakukan absen masuk terlebih dahulu.');
+                return;
+            }
             document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
             document.getElementById('view-' + tab).classList.add('active');
