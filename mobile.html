@@ -538,18 +538,25 @@
                 <div class="progress-container"><div class="progress-bar" id="ws-prog-bar"></div></div>
                 
                 <h3 style="font-size:0.9rem; color:var(--c-text-light); margin-top:20px;">TARGET HARI INI</h3>
+                <div style="display:flex; gap:8px; margin-top:12px;">
+                    <input type="text" id="new-target-input" placeholder="Tambah target baru..." style="flex:1; padding:12px 14px; border-radius:12px; border:1px solid var(--c-border); background:rgba(255,255,255,0.8); font-family:inherit; font-size:0.9rem; outline:none;" onkeydown="if(event.key==='Enter')addTarget()">
+                    <button onclick="addTarget()" style="padding:10px 16px; border-radius:12px; border:none; background:var(--c-blue); color:#fff; font-weight:700; font-size:0.85rem; cursor:pointer; white-space:nowrap;">+ Tambah</button>
+                </div>
                 <div class="target-list" id="t-list">
                     <div class="target-item">
                         <div class="checkbox-custom" onclick="toggleCheck(this)"></div>
-                        <div class="target-text">Menyelesaikan desain UI/UX untuk fitur absensi mobile.</div>
+                        <div class="target-text">Liputan Event Youth Community Festival</div>
+                        <div class="target-del" onclick="delTarget(this)" style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-text-light); font-size:16px; flex-shrink:0; margin-left:auto;">&#10005;</div>
+                    </div>
+                    <div class="target-item">
+                        <div class="checkbox-custom checked" onclick="toggleCheck(this)"></div>
+                        <div class="target-text">Drafting Script Video Reels TikTok @youtzmedia</div>
+                        <div class="target-del" onclick="delTarget(this)" style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-text-light); font-size:16px; flex-shrink:0; margin-left:auto;">&#10005;</div>
                     </div>
                     <div class="target-item">
                         <div class="checkbox-custom" onclick="toggleCheck(this)"></div>
-                        <div class="target-text">Review PR dari tim backend terkait API geolokasi.</div>
-                    </div>
-                    <div class="target-item">
-                        <div class="checkbox-custom" onclick="toggleCheck(this)"></div>
-                        <div class="target-text">Meeting sinkronisasi mingguan tim produk (14:00 WIB).</div>
+                        <div class="target-text">Editing Video Pitch Deck Youtz Media</div>
+                        <div class="target-del" onclick="delTarget(this)" style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-text-light); font-size:16px; flex-shrink:0; margin-left:auto;">&#10005;</div>
                     </div>
                 </div>
                 
@@ -793,6 +800,28 @@
         function toggleCheck(el) {
             el.classList.toggle('checked');
             updateProg();
+        }
+
+        function addTarget() {
+            const inp = document.getElementById('new-target-input');
+            const v = inp.value.trim();
+            if (!v) return;
+            const item = document.createElement('div');
+            item.className = 'target-item';
+            item.innerHTML = '<div class="checkbox-custom" onclick="toggleCheck(this)"></div><div class="target-text">' + v + '</div><div class="target-del" onclick="delTarget(this)" style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-text-light); font-size:16px; flex-shrink:0; margin-left:auto;">&#10005;</div>';
+            document.getElementById('t-list').appendChild(item);
+            inp.value = '';
+            updateProg();
+            showToast('Target baru ditambahkan.');
+        }
+
+        function delTarget(el) {
+            const item = el.closest('.target-item');
+            if (item) {
+                item.remove();
+                updateProg();
+                showToast('Target dihapus.');
+            }
         }
 
         function updateProg() {
