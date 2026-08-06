@@ -818,6 +818,7 @@ function doLogout() {
 function saveState() {
     const d = new Date();
     const key = 'youtz_state_' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    if (S.pulang) { localStorage.removeItem(key); return; }
     const targets = [];
     document.querySelectorAll('#t-list .target-item').forEach(it => {
         targets.push({
@@ -838,6 +839,7 @@ function saveState() {
     }
 }
 function loadState() {
+    try { const c = localStorage.getItem('youtz_cal'); if(c) S.data = JSON.parse(c); } catch(e){}
     const d = new Date();
     const key = 'youtz_state_' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
     const raw = localStorage.getItem(key);
@@ -1135,7 +1137,7 @@ function restoreUI() {
                 imgIn: S.imgIn,
                 imgOut: S.imgOut
             };
-            
+            try { localStorage.setItem('youtz_cal', JSON.stringify(S.data)); } catch(e){}
             renderCal();
         }
 
