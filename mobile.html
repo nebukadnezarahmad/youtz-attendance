@@ -846,6 +846,7 @@ function loadState() {
     if (raw) {
         try {
             const saved = JSON.parse(raw);
+            if (saved.pulang) { localStorage.removeItem(key); return; }
             S.masuk = saved.masuk; S.pulang = saved.pulang; S.draft = saved.draft;
             S.timeIn = saved.timeIn; S.timeOut = saved.timeOut;
             S.imgIn = saved.imgIn; S.imgOut = saved.imgOut;
