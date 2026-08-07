@@ -800,7 +800,7 @@ function doLogout() {
             loadState();
             startClock();
             initDevice();
-            renderCal();
+            fetchHistoryFromSheet();
             restoreUI();
         };
 
@@ -818,6 +818,10 @@ function doLogout() {
             if (tab === 'workspace' && S.masuk && !document.getElementById('s1-1').classList.contains('done')) {
                 document.getElementById('s1-1').classList.add('done');
                 document.getElementById('s1-2').classList.add('active');
+            }
+            
+            if (tab === 'kalender') {
+                fetchHistoryFromSheet();
             }
         }
 
@@ -1156,6 +1160,40 @@ function restoreUI() {
             if(S.calM > 11) { S.calM = 0; S.calY++; }
             else if(S.calM < 0) { S.calM = 11; S.calY--; }
             renderCal();
+        }
+
+        let isFetchingHistory = false;
+        
+        function fetchHistoryFromSheet() {
+            if (!STAFF_NAME) return;
+            if (isFetchingHistory) return;
+            isFetchingHistory = true;
+            
+            document.getElementById('cal-body').innerHTML = '<div style="grid-column: span 7; text-align: center; padding: 20px; font-size: 12px; color: var(--c-blue);">Memuat data dari server...</div>';
+            
+            const url = SCRIPT_URL + '?action=history&staff=' + encodeURIComponent(STAFF_NAME);
+            
+            fetch(url)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success && res.data) {
+                        // Reset current data
+                        S.data = {};
+                        res.data.forEach(item => {
+                            S.data[item.key] = {
+                                in: item.in,
+                                out: item.out,
+                                status: item.status
+                            };
+                        });
+                        try { localStorage.setItem('youtz_cal', JSON.stringify(S.data)); } catch(e){}
+                    }
+                })
+                .catch(err => console.error('Gagal memuat history', err))
+                .finally(() => {
+                    isFetchingHistory = false;
+                    renderCal();
+                });
         }
 
         function renderCal() {

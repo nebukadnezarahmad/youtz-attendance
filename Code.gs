@@ -28,9 +28,60 @@ function doPost(e) {
   }
 }
 
-// Juga handle GET untuk testing
 function doGet(e) {
+  if (e && e.parameter && e.parameter.action === 'history' && e.parameter.staff) {
+    return handleHistory(e.parameter.staff);
+  }
   return jsonResponse({ success: true, message: 'Youtz Attendance API aktif.' });
+}
+
+// ── GET HISTORY ──
+function handleHistory(staffName) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(staffName);
+    if (!sheet) {
+      return jsonResponse({ success: true, data: [] });
+    }
+    
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= 1) return jsonResponse({ success: true, data: [] });
+    
+    // Ambil kolom: Tanggal (A:1), Jam Masuk (C:3), Jam Pulang (D:4), Status (E:5)
+    // Ingat bahwa indeks getRange 1-based, array 0-based
+    const range = sheet.getRange(2, 1, lastRow - 1, 5);
+    const rows = range.getValues();
+    
+    const history = [];
+    const bulanIndo = {
+      'Januari': '01', 'Februari': '02', 'Maret': '03', 'April': '04', 'Mei': '05', 'Juni': '06',
+      'Juli': '07', 'Agustus': '08', 'September': '09', 'Oktober': '10', 'November': '11', 'Desember': '12'
+    };
+    
+    for (let i = 0; i < rows.length; i++) {
+      const tanggalTeks = rows[i][0]; // "07 Agustus 2026"
+      if (!tanggalTeks) continue;
+      
+      const parts = tanggalTeks.split(' ');
+      if (parts.length === 3) {
+        const yyyy = parts[2];
+        const mm = bulanIndo[parts[1]] || '01';
+        const dd = parts[0].padStart(2, '0');
+        const key = `${yyyy}-${mm}-${dd}`;
+        
+        history.push({
+          key: key,
+          in: rows[i][2], // Jam Masuk
+          out: rows[i][3], // Jam Pulang
+          status: rows[i][4] // Status
+        });
+      }
+    }
+    
+    return jsonResponse({ success: true, data: history });
+  } catch (err) {
+    return jsonResponse({ success: false, message: err.toString() });
+  }
 }
 
 // ── ABSEN MASUK ──
