@@ -8,6 +8,8 @@
 // ID ada di URL: https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit
 const SPREADSHEET_ID = '1UNZmzQtS8u1Lw1kzA1s275S-lVcHX0odBXLWXK6jU5Y';
 const DRIVE_FOLDER_NAME = 'Youtz-Attendance-Photos';
+// Sheet penampung draft harian (target & laporan sebelum absen pulang)
+const DRAFT_SHEET_NAME = 'Draft Harian';
 
 // ── MAIN HANDLER ──
 function doPost(e) {
@@ -20,6 +22,8 @@ function doPost(e) {
       return handleMasuk(sheet, data);
     } else if (data.type === 'pulang') {
       return handlePulang(sheet, data);
+    } else if (data.type === 'draft') {
+      return handleSaveDraft(ss, data);
     }
     
     return jsonResponse({ success: false, message: 'Tipe tidak dikenali' });
@@ -31,6 +35,9 @@ function doPost(e) {
 function doGet(e) {
   if (e && e.parameter && e.parameter.action === 'history' && e.parameter.staff) {
     return handleHistory(e.parameter.staff);
+  }
+  if (e && e.parameter && e.parameter.action === 'draft' && e.parameter.staff) {
+    return handleGetDraft(e.parameter.staff);
   }
   return jsonResponse({ success: true, message: 'Youtz Attendance API aktif.' });
 }
@@ -87,6 +94,134 @@ function handleHistory(staffName) {
   } catch (err) {
     return jsonResponse({ success: false, message: err.toString() });
   }
+}
+
+// ── DRAFT HARIAN: SIMPAN ──
+// Draft disimpan di sheet terpisah agar tidak mengganggu baris absensi.
+// Satu baris per staf per tanggal (ditimpa setiap kali draft disimpan).
+function handleSaveDraft(ss, data) {
+  try {
+    const sheet = findOrCreateDraftSheet(ss);
+    const today = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'dd MMMM yyyy');
+    const row = findDraftRow(sheet, data.staffName, today);
+    const values = [
+      data.staffName,                 // A: Staff
+      today,                          // B: Tanggal
+      formatTargetText(data.targets), // C: Target Kerja
+      data.laporan || '',             // D: Laporan Pekerjaan
+      data.draftTgtTime || '',        // E: Jam Draft Target
+      data.draftLogTime || '',        // F: Jam Draft Laporan
+      data.lanjut ? 'YA' : '',        // G: Sudah Lanjut Absen Pulang
+      Utilities.formatDate(new Date(), 'Asia/Jakarta', 'dd MMMM yyyy HH:mm:ss') // H
+    ];
+
+    if (row > 0) {
+      sheet.getRange(row, 1, 1, values.length).setValues([values]);
+    } else {
+      sheet.appendRow(values);
+    }
+    return jsonResponse({ success: true, message: 'Draft tersimpan.' });
+  } catch (err) {
+    return jsonResponse({ success: false, message: err.toString() });
+  }
+}
+
+// ── DRAFT HARIAN: AMBIL ──
+function handleGetDraft(staffName) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(DRAFT_SHEET_NAME);
+    if (!sheet) return jsonResponse({ success: true, data: null });
+
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= 1) return jsonResponse({ success: true, data: null });
+
+    const today = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'dd MMMM yyyy');
+    const rows = sheet.getRange(2, 1, lastRow - 1, 8).getDisplayValues();
+
+    for (let i = rows.length - 1; i >= 0; i--) {
+      if (rows[i][0] === staffName && rows[i][1] === today) {
+        // Hari kerja sudah ditutup dengan absen pulang — tidak ada draft aktif
+        if (rows[i][6] === 'SELESAI') return jsonResponse({ success: true, data: null });
+        return jsonResponse({
+          success: true,
+          data: {
+            target: rows[i][2],
+            laporan: rows[i][3],
+            draftTgtTime: rows[i][4],
+            draftLogTime: rows[i][5],
+            lanjut: rows[i][6] === 'YA'
+          }
+        });
+      }
+    }
+    return jsonResponse({ success: true, data: null });
+  } catch (err) {
+    return jsonResponse({ success: false, message: err.toString() });
+  }
+}
+
+// ── HELPER: Tandai draft hari ini sudah selesai (setelah absen pulang) ──
+function markDraftSelesai(ss, staffName) {
+  try {
+    const sheet = ss.getSheetByName(DRAFT_SHEET_NAME);
+    if (!sheet) return;
+    const today = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'dd MMMM yyyy');
+    const row = findDraftRow(sheet, staffName, today);
+    if (row > 0) sheet.getRange(row, 7).setValue('SELESAI');
+  } catch (err) {
+    Logger.log('markDraftSelesai: ' + err);
+  }
+}
+
+// ── HELPER: Cari baris draft milik staf pada tanggal tertentu ──
+function findDraftRow(sheet, staffName, tanggal) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return -1;
+  const rows = sheet.getRange(2, 1, lastRow - 1, 2).getDisplayValues();
+  for (let i = rows.length - 1; i >= 0; i--) {
+    if (rows[i][0] === staffName && rows[i][1] === tanggal) return i + 2;
+  }
+  return -1;
+}
+
+// ── HELPER: Buat sheet draft bila belum ada ──
+function findOrCreateDraftSheet(ss) {
+  let sheet = ss.getSheetByName(DRAFT_SHEET_NAME);
+  if (sheet) return sheet;
+
+  sheet = ss.insertSheet(DRAFT_SHEET_NAME);
+  const headers = ['Staff', 'Tanggal', 'Target Kerja', 'Laporan Pekerjaan', 'Jam Draft Target', 'Jam Draft Laporan', 'Lanjut Absen Pulang', 'Terakhir Diperbarui'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
+  const headerRange = sheet.getRange(1, 1, 1, headers.length);
+  headerRange.setBackground('#CB2E72');
+  headerRange.setFontColor('#FFFFFF');
+  headerRange.setFontWeight('bold');
+  headerRange.setFontSize(10);
+  headerRange.setHorizontalAlignment('center');
+
+  sheet.setColumnWidth(1, 120);  // Staff
+  sheet.setColumnWidth(2, 140);  // Tanggal
+  sheet.setColumnWidth(3, 280);  // Target
+  sheet.setColumnWidth(4, 320);  // Laporan
+  sheet.setColumnWidth(5, 130);  // Jam draft target
+  sheet.setColumnWidth(6, 130);  // Jam draft laporan
+  sheet.setColumnWidth(7, 150);  // Lanjut
+  sheet.setColumnWidth(8, 180);  // Terakhir diperbarui
+  sheet.setFrozenRows(1);
+  return sheet;
+}
+
+// ── HELPER: Susun teks target ("2/3 selesai" + daftar bercentang) ──
+function formatTargetText(targets) {
+  if (!targets || !targets.length) return '';
+  const done = targets.filter(function (t) { return t.done; }).length;
+  let text = done + '/' + targets.length + ' selesai';
+  targets.forEach(function (t, i) {
+    text += '\n' + (i + 1) + '. ' + (t.done ? '[v] ' : '[ ] ') + t.label;
+  });
+  return text;
 }
 
 // ── ABSEN MASUK ──
@@ -154,22 +289,18 @@ function handlePulang(sheet, data) {
   const totalJam = hitungDurasi(jamMasuk, jamPulang);
   
   // Format target
-  let targetText = '';
-  if (data.targets && data.targets.length > 0) {
-    const done = data.targets.filter(t => t.done).length;
-    targetText = done + '/' + data.targets.length + ' selesai';
-    data.targets.forEach((t, i) => {
-      targetText += '\n' + (i + 1) + '. ' + (t.done ? '[v] ' : '[ ] ') + t.label;
-    });
-  }
-  
+  const targetText = formatTargetText(data.targets);
+
   // Update row
   sheet.getRange(row, 4).setValue(jamPulang);          // D: Jam Pulang
   sheet.getRange(row, 6).setValue(totalJam);            // F: Total Jam Kerja
   sheet.getRange(row, 8).setValue(targetText);          // H: Target Kerja
   sheet.getRange(row, 9).setValue(data.laporan || '');  // I: Laporan Pekerjaan
   sheet.getRange(row, 11).setValue(fotoPulangLink);     // K: Foto Pulang
-  
+
+  // Tandai draft hari ini sudah selesai agar tidak dipulihkan lagi
+  markDraftSelesai(sheet.getParent(), data.staffName);
+
   return jsonResponse({ success: true, message: 'Absen pulang berhasil dicatat.' });
 }
 

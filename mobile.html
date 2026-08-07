@@ -838,6 +838,7 @@ function doLogout() {
             initDevice();
             fetchHistoryFromSheet();
             restoreUI();
+            fetchDraftFromSheet();
         };
 
         function switchTab(tab) {
@@ -966,13 +967,77 @@ function stampNow() {
     return p(n.getHours()) + ':' + p(n.getMinutes());
 }
 
+// ── SINKRONISASI DRAFT DENGAN SPREADSHEET ──
+function currentTargets() {
+    const out = [];
+    document.querySelectorAll('#t-list .target-item').forEach(it => out.push({
+        label: it.querySelector('.target-text').textContent,
+        done: it.querySelector('.checkbox-custom').classList.contains('checked')
+    }));
+    return out;
+}
+function pushDraftToSheet() {
+    if (!SCRIPT_URL || !STAFF_NAME || !S.masuk) return;
+    fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({
+        type: 'draft', staffName: STAFF_NAME,
+        targets: currentTargets(),
+        laporan: document.getElementById('work-log').value.trim(),
+        draftTgtTime: S.draftTgt ? (S.draftTgtTime || '') : '',
+        draftLogTime: S.draftLog ? (S.draftLogTime || '') : '',
+        lanjut: !!S.draft
+    })}).catch(err => console.error('Gagal kirim draft:', err));
+}
+// Jam terakhir draft disimpan, dipakai membandingkan versi lokal vs server
+function draftStamp(a, b) { const x = a || '', y = b || ''; return x > y ? x : y; }
+function parseTargetText(txt) {
+    const out = [];
+    if (!txt) return out;
+    const lines = String(txt).split('\n');
+    for (let i = 1; i < lines.length; i++) {
+        if (lines[i].indexOf('[v] ') >= 0) out.push({ l: lines[i].split('[v] ')[1], d: true });
+        else if (lines[i].indexOf('[ ] ') >= 0) out.push({ l: lines[i].split('[ ] ')[1], d: false });
+    }
+    return out;
+}
+function fetchDraftFromSheet() {
+    if (!SCRIPT_URL || !STAFF_NAME || !S.masuk || S.pulang) return;
+    fetch(SCRIPT_URL + '?action=draft&staff=' + encodeURIComponent(STAFF_NAME))
+        .then(r => r.json())
+        .then(res => {
+            if (!res || !res.success || !res.data) return;
+            const d = res.data;
+            // Draft server hanya dipakai bila tidak lebih lama dari draft di perangkat ini
+            const stServer = draftStamp(d.draftTgtTime, d.draftLogTime);
+            const stLokal = draftStamp(S.draftTgt ? S.draftTgtTime : '', S.draftLog ? S.draftLogTime : '');
+            if (!stServer || stServer < stLokal) return;
+
+            const tgts = parseTargetText(d.target);
+            if (tgts.length) {
+                const list = document.getElementById('t-list'); list.innerHTML = '';
+                tgts.forEach(t => list.appendChild(mkTargetItem(t.l, t.d)));
+            }
+            if (d.laporan) document.getElementById('work-log').value = d.laporan;
+            S.draftTgt = !!d.draftTgtTime; S.draftTgtTime = d.draftTgtTime || '';
+            S.draftLog = !!d.draftLogTime; S.draftLogTime = d.draftLogTime || '';
+            if (d.lanjut && !S.draft) {
+                S.draft = true;
+                document.getElementById('pulang-section').classList.remove('hidden');
+                document.getElementById('s1-2').classList.add('done');
+                document.getElementById('s1-3').classList.add('active');
+            }
+            updateProg(); updateDraftUI(); saveState();
+            showToast('Draft hari ini dipulihkan dari Spreadsheet.');
+        })
+        .catch(err => console.error('Gagal memuat draft:', err));
+}
+
 function saveDraftTarget() {
     if (!S.masuk) return showToast("Anda belum Absen Masuk!");
     const n = document.querySelectorAll('#t-list .target-item').length;
     if (!n) return showToast("Tambahkan minimal 1 target terlebih dahulu.");
     S.draftTgt = true; S.draftTgtTime = stampNow();
-    saveState(); updateDraftUI();
-    showToast("Draft target tersimpan (" + n + " target).");
+    saveState(); updateDraftUI(); pushDraftToSheet();
+    showToast("Draft target tersimpan (" + n + " target) — tersimpan juga ke Spreadsheet.");
 }
 
 function saveDraftLog() {
@@ -980,7 +1045,7 @@ function saveDraftLog() {
     const log = document.getElementById('work-log').value.trim();
     if (!log) return showToast("Tuliskan laporan pekerjaan terlebih dahulu.");
     S.draftLog = true; S.draftLogTime = stampNow();
-    saveState(); updateDraftUI();
+    saveState(); updateDraftUI(); pushDraftToSheet();
     showToast("Draft laporan tersimpan.");
 }
 
@@ -1181,7 +1246,7 @@ function updateDraftUI() {
             setTimeout(() => {
                 document.getElementById('pulang-section').scrollIntoView({behavior: 'smooth'});
             }, 100);
-            saveState();
+            saveState(); pushDraftToSheet();
             showToast("Workspace Tersimpan!");
         }
 
