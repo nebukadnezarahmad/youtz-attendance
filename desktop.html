@@ -901,7 +901,23 @@ setInterval(tick,1000);tick();
 let _tt;function toast(m, dur=3200, bg=''){const e=document.getElementById('toast-el');e.textContent=m;if(bg){e.style.background=bg;e.style.color='#fff';}else{e.style.background='';e.style.color='';}e.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>e.classList.remove('show'),dur)}
 const ro=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target)}}),{threshold:0.1});
 function arev(){document.querySelectorAll('.reveal:not(.in)').forEach(el=>ro.observe(el))}arev();
-function gTab(id){if(id==='b'&&!S.masuk){toast('Lakukan absen masuk terlebih dahulu.');return}['a','b','c'].forEach(t=>{document.getElementById('tab-'+t).classList.toggle('active',t===id);document.getElementById('page-'+t).classList.toggle('active',t===id)});if(id==='c')fetchHistoryFromSheet();requestAnimationFrame(arev)}
+function gTab(id){
+    if(id==='b'&&!S.masuk){toast('Lakukan absen masuk terlebih dahulu.');return}
+    ['a','b','c'].forEach(t=>{
+        document.getElementById('tab-'+t).classList.toggle('active',t===id);
+        document.getElementById('page-'+t).classList.toggle('active',t===id)
+    });
+    if(id==='c'){
+        fetchHistoryFromSheet();
+        const vp=document.getElementById('cam-v-p');
+        if(vp&&vp.srcObject)vp.play().catch(e=>console.log(e));
+    }
+    if(id==='a'){
+        const vm=document.getElementById('cam-v-m');
+        if(vm&&vm.srcObject)vm.play().catch(e=>console.log(e));
+    }
+    requestAnimationFrame(arev)
+}
 function wsTab(id){['tgt','log'].forEach(t=>{document.getElementById('wt-'+t).classList.toggle('active',t===id);document.getElementById('wp-'+t).classList.toggle('active',t===id)})}
 
 function saveState() {
