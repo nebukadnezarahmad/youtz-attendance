@@ -1093,8 +1093,7 @@ function openM(key){
   let targetHtml = '';
   let targetCountText = '';
   if (r.target) {
-      const lines = r.target.split('
-');
+      const lines = r.target.split('\\n');
       targetCountText = lines[0]; // e.g. "3/3 selesai"
       const tList = [];
       for(let i=1; i<lines.length; i++) {
