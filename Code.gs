@@ -47,8 +47,8 @@ function handleHistory(staffName) {
     const lastRow = sheet.getLastRow();
     if (lastRow <= 1) return jsonResponse({ success: true, data: [] });
     
-    // Ambil kolom: Tanggal (A:1) s.d Laporan (I:9)
-    const range = sheet.getRange(2, 1, lastRow - 1, 9);
+    // Ambil kolom: Tanggal (A:1) s.d Foto Pulang (K:11)
+    const range = sheet.getRange(2, 1, lastRow - 1, 11);
     const rows = range.getDisplayValues();
     
     const history = [];
@@ -76,7 +76,9 @@ function handleHistory(staffName) {
           out: rows[i][3], // Jam Pulang
           status: rows[i][4], // Status
           target: rows[i][7], // Target Kerja
-          log: rows[i][8] // Laporan Pekerjaan
+          log: rows[i][8], // Laporan Pekerjaan
+          fotoIn: drivePreviewUrl(rows[i][9]),  // J: Foto Masuk
+          fotoOut: drivePreviewUrl(rows[i][10]) // K: Foto Pulang
         });
       }
     }
@@ -218,6 +220,13 @@ function findTodayRow(sheet) {
     if (data[i][0] === today) return i + 2; // +2 karena offset header dan 0-index
   }
   return -1;
+}
+
+// ── HELPER: Ubah link Drive menjadi URL thumbnail yang bisa dipakai <img> ──
+function drivePreviewUrl(url) {
+  if (!url) return '';
+  const m = url.toString().match(/[-\w]{25,}/);
+  return m ? 'https://drive.google.com/thumbnail?id=' + m[0] + '&sz=w400' : '';
 }
 
 // ── HELPER: Upload foto ke Google Drive ──

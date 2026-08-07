@@ -1082,7 +1082,9 @@ function fetchHistoryFromSheet() {
                         out: item.out,
                         status: item.status,
                         target: item.target,
-                        log: item.log
+                        log: item.log,
+                        fotoIn: item.fotoIn,
+                        fotoOut: item.fotoOut
                     };
                 });
                 try { localStorage.setItem('youtz_cal', JSON.stringify(S.data)); } catch(e){}
@@ -1142,10 +1144,12 @@ function openM(key){
   document.getElementById('m-bdg').innerHTML=h+'<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:700;background:rgba(203,46,114,.1);color:var(--pk2);border:1px solid rgba(203,46,114,.2)">Youtz HQ</span>'+(targetCountText?'<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:700;background:rgba(247,203,7,.1);color:#997A00;border:1px solid rgba(247,203,7,.2)">'+targetCountText+'</span>':'');
   document.getElementById('m-tgts').innerHTML = targetHtml;
   
+  const imgIn = r.masukImg || r.fotoIn;
+  const imgOut = r.pulangImg || r.fotoOut;
   const mm = document.getElementById('m-img-m');
-  if(mm) mm.innerHTML = r.masukImg ? `<img src="${r.masukImg}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : 'IN';
+  if(mm) mm.innerHTML = imgIn ? `<img src="${imgIn}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentNode.textContent='IN'">` : 'IN';
   const mp = document.getElementById('m-img-p');
-  if(mp) mp.innerHTML = r.pulangImg ? `<img src="${r.pulangImg}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : 'OUT';
+  if(mp) mp.innerHTML = imgOut ? `<img src="${imgOut}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentNode.textContent='OUT'">` : 'OUT';
   document.getElementById('movl').classList.add('show');
   document.body.style.overflow='hidden'
 }
