@@ -828,6 +828,8 @@ body {
 
 <script>
 // ── LOGIN SYSTEM ──
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwkYk8tVUV-FSy6NermteAIB-os3nwaqP0S7d4XAAQNOLkXgaa1NouR8hx05ZPTyUDv/exec';
+
 const USERS = {
   "Nawwa": "nawwariyahd@gmail.com",
   "Daffa": "kordiee29@gmail.com",
@@ -962,7 +964,9 @@ function restoreUI() {
     const ts = fmt(S.tMasuk), late = S.tMasuk.getHours() >= 9;
     document.getElementById('cts-m').textContent = ts + ' WIB';
     const cvM = document.getElementById('cov-m');
-    cvM.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.masukImg}) center/cover`;
+    cvM.style.background = S.masukImg
+      ? `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.masukImg}) center/cover`
+      : 'rgba(15,23,42,.8)';
     cvM.style.backdropFilter = 'none';
     const cvicM = cvM.querySelector('.cvic'); if (cvicM) cvicM.style.display = 'none';
     const cringM = cvM.querySelector('.cring'); if (cringM) cringM.style.display = 'none';
@@ -1017,7 +1021,9 @@ function restoreUI() {
     const ts = fmt(S.tPulang);
     document.getElementById('cts-p').textContent = ts + ' WIB';
     const cvP = document.getElementById('cov-p');
-    cvP.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.pulangImg}) center/cover`;
+    cvP.style.background = S.pulangImg
+      ? `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.pulangImg}) center/cover`
+      : 'rgba(15,23,42,.8)';
     cvP.style.backdropFilter = 'none';
     const cvicP = cvP.querySelector('.cvic'); if (cvicP) cvicP.style.display = 'none';
     const cringP = cvP.querySelector('.cring'); if (cringP) cringP.style.display = 'none';
@@ -1111,7 +1117,7 @@ function openM(key){
   let targetHtml = '';
   let targetCountText = '';
   if (r.target) {
-      const lines = r.target.split('\\n');
+      const lines = r.target.split('\n');
       targetCountText = lines[0]; // e.g. "3/3 selesai"
       const tList = [];
       for(let i=1; i<lines.length; i++) {
@@ -1247,7 +1253,7 @@ function updateLoc(txt) {
 initDevice();
 
 // ── GOOGLE SPREADSHEET INTEGRATION ──
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwkYk8tVUV-FSy6NermteAIB-os3nwaqP0S7d4XAAQNOLkXgaa1NouR8hx05ZPTyUDv/exec';
+// (SCRIPT_URL dideklarasikan di bagian atas script, sebelum pemanggilan pertama)
 
 function sendToSheet(type) {
   if (!SCRIPT_URL) return;
