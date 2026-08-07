@@ -934,6 +934,7 @@ window.addEventListener('load', () => {
   loadState();
   restoreUI();
   fetchDraftFromSheet();
+  syncCamera();
 });
 
 const S={masuk:false,pulang:false,draft:false,draftTgt:false,draftLog:false,draftTgtTime:'',draftLogTime:'',tMasuk:null,tPulang:null,cy:2026,cm:8,data:{}};
@@ -954,15 +955,8 @@ function gTab(id){
         document.getElementById('tab-'+t).classList.toggle('active',t===id);
         document.getElementById('page-'+t).classList.toggle('active',t===id)
     });
-    if(id==='c'){
-        fetchHistoryFromSheet();
-        const vp=document.getElementById('cam-v-p');
-        if(vp&&vp.srcObject)vp.play().catch(e=>console.log(e));
-    }
-    if(id==='a'){
-        const vm=document.getElementById('cam-v-m');
-        if(vm&&vm.srcObject)vm.play().catch(e=>console.log(e));
-    }
+    if(id==='c')fetchHistoryFromSheet();
+    syncCamera();
     requestAnimationFrame(arev)
 }
 function wsTab(id){
@@ -1097,7 +1091,7 @@ const ts=fmt(n);document.getElementById('cts-m').textContent=ts+' WIB';const cvM
     toast('Kamu hampir terlambat, toleransi keterlambatan diberikan, jangan terlambat lagi yaa', 15000, 'var(--pk)');
 } else {
     toast('Kerja bagus! Terima kasih sudah datang tepat waktu hari ini, mari pertahankan semangatnya!', 15000, 'var(--pk)');
-}saveState();sendToSheet('masuk');},1800)}
+}saveState();sendToSheet('masuk');syncCamera();},1800)}
 function tg(el){el.classList.toggle('ck');const tag=el.querySelector('.ctag');if(el.classList.contains('ck')){tag.className='ctag done';tag.textContent='Selesai'}else{tag.className='ctag ip';tag.textContent='In Progress'}upP();saveState();}
 function upP(){const all=document.querySelectorAll('#clist .ci'),ck=document.querySelectorAll('#clist .ci.ck');const pct=all.length?Math.round(ck.length/all.length*1000)/10:0;document.getElementById('pbar').style.width=pct+'%';document.getElementById('ppct').textContent=pct+'%';if(document.getElementById('sh-pct'))document.getElementById('sh-pct').textContent=pct+'%';document.getElementById('tcnt').textContent=all.length;document.getElementById('tnb').textContent=all.length;document.getElementById('sp-done').textContent=ck.length;document.getElementById('sp-all').textContent=all.length}
 function mkTargetEl(label,done){
@@ -1171,7 +1165,7 @@ function fetchDraftFromSheet(){
         document.getElementById('ps').classList.add('show');
         document.getElementById('pd3').className='psd act';
       }
-      upP();updateDraftUI();saveState();
+      upP();updateDraftUI();saveState();syncCamera();
       toast('Draft hari ini dipulihkan dari Spreadsheet.');
     })
     .catch(err=>console.error('Gagal memuat draft:',err));
@@ -1218,11 +1212,11 @@ function lanjutPulang(){
   S.draft=true;
   const ps=document.getElementById('ps');ps.classList.add('show');
   document.getElementById('pd3').className='psd act';
-  updateDraftUI();saveState();pushDraftToSheet();
+  updateDraftUI();saveState();pushDraftToSheet();syncCamera();
   setTimeout(()=>ps.scrollIntoView({behavior:'smooth',block:'start'}),80);
   toast('Draft tersimpan — Form Absen Pulang sudah aktif.');
 }
-function doPulang(){if(!camReady){toast('Izinkan kamera terlebih dahulu!');return} if(!locReady){toast('Tunggu lokasi GPS terdeteksi!');return} if(!S.masuk){toast('Lakukan absen masuk terlebih dahulu.');return}if(!S.draft){toast('Simpan laporan pekerjaan terlebih dahulu.');return}if(S.pulang){toast('Absen pulang sudah dilakukan.');return}const b=document.getElementById('btn-p');b.textContent='Memproses...';b.disabled=true;setTimeout(()=>{const n=new Date();S.pulang=true;S.tPulang=n; S.pulangImg=captureFrame('cam-v-p');const ts=fmt(n);document.getElementById('cts-p').textContent=ts+' WIB';const cvP = document.getElementById('cov-p');cvP.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.pulangImg}) center/cover`;cvP.style.backdropFilter = 'none';const cvicP = cvP.querySelector('.cvic'); if(cvicP) cvicP.style.display = 'none';const cringP = cvP.querySelector('.cring'); if(cringP) cringP.style.display = 'none';document.getElementById('cov-p').classList.add('show');document.getElementById('chp-p').textContent=ts+' WIB';document.getElementById('rc-p').classList.add('show');document.getElementById('go-cal').style.display='block';document.getElementById('sl-b').classList.add('done');document.getElementById('pd2').className='psd done';document.getElementById('pd3').className='psd done';b.innerHTML='Absen Pulang Berhasil<div class="arr">&#10003;</div>';b.style.background='linear-gradient(155deg,var(--grn),#047857)';b.style.boxShadow='var(--sh-gn)';b.disabled=false;saveToCal();saveState();toast('Absen Pulang berhasil — '+ts+' WIB · Tersimpan ke kalender.');sendToSheet('pulang');},1800)}
+function doPulang(){if(!camReady){toast('Izinkan kamera terlebih dahulu!');return} if(!locReady){toast('Tunggu lokasi GPS terdeteksi!');return} if(!S.masuk){toast('Lakukan absen masuk terlebih dahulu.');return}if(!S.draft){toast('Simpan laporan pekerjaan terlebih dahulu.');return}if(S.pulang){toast('Absen pulang sudah dilakukan.');return}const b=document.getElementById('btn-p');b.textContent='Memproses...';b.disabled=true;setTimeout(()=>{const n=new Date();S.pulang=true;S.tPulang=n; S.pulangImg=captureFrame('cam-v-p');const ts=fmt(n);document.getElementById('cts-p').textContent=ts+' WIB';const cvP = document.getElementById('cov-p');cvP.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.pulangImg}) center/cover`;cvP.style.backdropFilter = 'none';const cvicP = cvP.querySelector('.cvic'); if(cvicP) cvicP.style.display = 'none';const cringP = cvP.querySelector('.cring'); if(cringP) cringP.style.display = 'none';document.getElementById('cov-p').classList.add('show');document.getElementById('chp-p').textContent=ts+' WIB';document.getElementById('rc-p').classList.add('show');document.getElementById('go-cal').style.display='block';document.getElementById('sl-b').classList.add('done');document.getElementById('pd2').className='psd done';document.getElementById('pd3').className='psd done';b.innerHTML='Absen Pulang Berhasil<div class="arr">&#10003;</div>';b.style.background='linear-gradient(155deg,var(--grn),#047857)';b.style.boxShadow='var(--sh-gn)';b.disabled=false;saveToCal();saveState();toast('Absen Pulang berhasil — '+ts+' WIB · Tersimpan ke kalender.');sendToSheet('pulang');syncCamera();},1800)}
 function saveToCal(){const t=new Date(),key=t.getFullYear()+'-'+(t.getMonth()+1)+'-'+t.getDate();const items=document.querySelectorAll('#clist .ci'),targets=[];items.forEach(it=>targets.push({l:it.querySelector('.cl').textContent,d:it.classList.contains('ck')}));S.data[key]={masuk:fmt(S.tMasuk),pulang:fmt(S.tPulang),targets,log:document.getElementById('wla').value.trim(), masukImg: S.masukImg, pulangImg: S.pulangImg}; try{localStorage.setItem('youtz_cal', JSON.stringify(S.data));}catch(e){}}
 let isFetchingHistory = false;
 function fetchHistoryFromSheet() {
@@ -1410,33 +1404,56 @@ let locReady = false;
 let locName = "Lokasi Tidak Diketahui";
 let camStream = null;
 
-async function initDevice() {
+// Kamera hanya menyala saat benar-benar dipakai: menjelang absen masuk
+// dan menjelang absen pulang. Di luar itu stream dimatikan agar perangkat
+// tidak terbebani dan lampu kamera padam.
+function camNeeded() {
+  const pageA = document.getElementById('page-a').classList.contains('active');
+  const pageB = document.getElementById('page-b').classList.contains('active');
+  if (pageA && !S.masuk) return 'cam-v-m';
+  if (pageB && S.masuk && S.draft && !S.pulang) return 'cam-v-p';
+  return null;
+}
+function attachStream(v) {
+  if (!v || !camStream) return;
+  v.muted = true;
+  v.setAttribute('autoplay', '');
+  v.setAttribute('playsinline', '');
+  v.setAttribute('muted', '');
+  if (v.srcObject !== camStream) v.srcObject = camStream;
+  const p = v.play();
+  if (p !== undefined) p.catch(() => document.body.addEventListener('click', () => v.play(), { once: true }));
+}
+function stopCam() {
+  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  ['cam-v-m', 'cam-v-p'].forEach(id => { const v = document.getElementById(id); if (v) v.srcObject = null; });
+  camReady = false;
+}
+let camBusy = false;
+async function syncCamera() {
+  const id = camNeeded();
+  if (!id) { stopCam(); return; }
+  if (camStream && camStream.active) { attachStream(document.getElementById(id)); camReady = true; return; }
+  if (camBusy) return;
+  camBusy = true;
   try {
     camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-    const vm = document.getElementById('cam-v-m');
-    const vp = document.getElementById('cam-v-p');
-    if(vm) {
-      vm.muted = true;
-      vm.setAttribute('autoplay', '');
-      vm.setAttribute('playsinline', '');
-      vm.srcObject = camStream;
-      const p = vm.play();
-      if(p !== undefined) p.catch(() => document.body.addEventListener('click', () => vm.play(), {once:true}));
-    }
-    if(vp) {
-      vp.muted = true;
-      vp.setAttribute('autoplay', '');
-      vp.setAttribute('playsinline', '');
-      vp.srcObject = camStream;
-      const p = vp.play();
-      if(p !== undefined) p.catch(() => document.body.addEventListener('click', () => vp.play(), {once:true}));
-    }
+    // Keadaan bisa berubah selagi menunggu izin kamera
+    const kini = camNeeded();
+    if (!kini) { stopCam(); return; }
+    attachStream(document.getElementById(kini));
     camReady = true;
-  } catch(e) {
+  } catch (e) {
+    camReady = false;
     console.error("Camera Error:", e);
     toast("Gagal mengakses kamera. Beri izin di pengaturan browser.");
+  } finally {
+    camBusy = false;
   }
+}
 
+function initDevice() {
+  // Kamera diurus syncCamera() setelah state dipulihkan; di sini hanya lokasi
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       pos => {

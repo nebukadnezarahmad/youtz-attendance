@@ -839,6 +839,7 @@ function doLogout() {
             fetchHistoryFromSheet();
             restoreUI();
             fetchDraftFromSheet();
+            syncCamera();
         };
 
         function switchTab(tab) {
@@ -857,16 +858,9 @@ function doLogout() {
                 document.getElementById('s1-2').classList.add('active');
             }
 
-            if (tab === 'kalender') {
-                fetchHistoryFromSheet();
-            } else if (tab === 'masuk') {
-                const vm = document.getElementById('cam-v-m');
-                if(vm && vm.srcObject) vm.play().catch(e=>console.log(e));
-            } else if (tab === 'workspace' && S.masuk && !S.pulang) {
-                const vp = document.getElementById('cam-v-p');
-                if(vp && vp.srcObject) vp.play().catch(e=>console.log(e));
-            }
-            
+            if (tab === 'kalender') fetchHistoryFromSheet();
+            syncCamera();
+
             saveState();
         }
 
@@ -1025,7 +1019,7 @@ function fetchDraftFromSheet() {
                 document.getElementById('s1-2').classList.add('done');
                 document.getElementById('s1-3').classList.add('active');
             }
-            updateProg(); updateDraftUI(); saveState();
+            updateProg(); updateDraftUI(); saveState(); syncCamera();
             showToast('Draft hari ini dipulihkan dari Spreadsheet.');
         })
         .catch(err => console.error('Gagal memuat draft:', err));
@@ -1093,19 +1087,43 @@ function updateDraftUI() {
             }, 1000);
         }
 
-        async function initDevice() {
-            // Camera
+        // Kamera hanya menyala saat benar-benar dipakai: menjelang absen masuk
+        // dan menjelang absen pulang. Di luar itu stream dimatikan agar
+        // perangkat tidak terbebani dan lampu kamera padam.
+        function camNeeded() {
+            if (S.curTab === 'masuk' && !S.masuk) return 'cam-v-m';
+            if (S.curTab === 'workspace' && S.masuk && S.draft && !S.pulang) return 'cam-v-p';
+            return null;
+        }
+        function stopCam() {
+            if (S.stream) { S.stream.getTracks().forEach(t => t.stop()); S.stream = null; }
+            ['cam-v-m', 'cam-v-p'].forEach(id => { const v = document.getElementById(id); if (v) v.srcObject = null; });
+        }
+        let camBusy = false;
+        async function syncCamera() {
+            const id = camNeeded();
+            if (!id) { stopCam(); return; }
+            if (S.stream && S.stream.active) { attachStream(); return; }
+            if (camBusy) return;
+            camBusy = true;
             try {
-                S.stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, 
-                    audio: false 
+                S.stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+                    audio: false
                 });
+                // Keadaan bisa berubah selagi menunggu izin kamera
+                if (!camNeeded()) { stopCam(); return; }
                 attachStream();
             } catch(e) {
                 console.log("Kamera tidak diizinkan", e);
                 showToast("Akses kamera ditolak. Beri izin di pengaturan browser.");
+            } finally {
+                camBusy = false;
             }
-            
+        }
+
+        function initDevice() {
+            // Kamera diurus syncCamera() setelah state dipulihkan; di sini hanya lokasi
             // Geolocation
             if("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(async pos => {
@@ -1128,7 +1146,8 @@ function updateDraftUI() {
 
         function attachStream() {
             if (!S.stream) return;
-            const videos = ['cam-v-m', 'cam-v-p'];
+            const needed = camNeeded();
+            const videos = needed ? [needed] : [];
             videos.forEach(id => {
                 const v = document.getElementById(id);
                 if (!v) return;
@@ -1183,6 +1202,7 @@ function updateDraftUI() {
             showToast("Absen Masuk Berhasil!");
             saveState();
             sendToSheet('masuk');
+            syncCamera();   // kamera dimatikan sampai waktunya absen pulang
         }
 
         function toggleCheck(el) {
@@ -1246,7 +1266,7 @@ function updateDraftUI() {
             setTimeout(() => {
                 document.getElementById('pulang-section').scrollIntoView({behavior: 'smooth'});
             }, 100);
-            saveState(); pushDraftToSheet();
+            saveState(); pushDraftToSheet(); syncCamera();
             showToast("Workspace Tersimpan!");
         }
 
@@ -1274,6 +1294,7 @@ function updateDraftUI() {
             saveState();
             showToast("Absen Pulang Berhasil!");
             sendToSheet('pulang');
+            syncCamera();   // hari kerja selesai, kamera dimatikan
         }
 
         function saveToCal() {
