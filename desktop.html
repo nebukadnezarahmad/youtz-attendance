@@ -1119,14 +1119,20 @@ async function initDevice() {
     const vm = document.getElementById('cam-v-m');
     const vp = document.getElementById('cam-v-p');
     if(vm) {
-      vm.srcObject = camStream;
       vm.muted = true;
-      vm.play().catch(e=>console.log(e));
+      vm.setAttribute('autoplay', '');
+      vm.setAttribute('playsinline', '');
+      vm.srcObject = camStream;
+      const p = vm.play();
+      if(p !== undefined) p.catch(() => document.body.addEventListener('click', () => vm.play(), {once:true}));
     }
     if(vp) {
-      vp.srcObject = camStream;
       vp.muted = true;
-      vp.play().catch(e=>console.log(e));
+      vp.setAttribute('autoplay', '');
+      vp.setAttribute('playsinline', '');
+      vp.srcObject = camStream;
+      const p = vp.play();
+      if(p !== undefined) p.catch(() => document.body.addEventListener('click', () => vp.play(), {once:true}));
     }
     camReady = true;
   } catch(e) {
