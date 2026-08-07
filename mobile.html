@@ -956,12 +956,14 @@ function doLogout() {
                         // Reset current data
                         S.data = {};
                         res.data.forEach(item => {
-                            S.data[item.key] = {
-                                in: item.in,
-                                out: item.out,
-                                status: item.status
-                            };
-                        });
+                    S.data[item.key] = {
+                        in: item.in,
+                        out: item.out,
+                        status: item.status,
+                        target: item.target,
+                        log: item.log
+                    };
+                });
                         try { localStorage.setItem('youtz_cal', JSON.stringify(S.data)); } catch(e){}
                     }
                     if (!S.data) S.data = {};

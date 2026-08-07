@@ -1074,7 +1074,9 @@ function fetchHistoryFromSheet() {
                     S.data[item.key] = {
                         in: item.in,
                         out: item.out,
-                        status: item.status
+                        status: item.status,
+                        target: item.target,
+                        log: item.log
                     };
                 });
                 try { localStorage.setItem('youtz_cal', JSON.stringify(S.data)); } catch(e){}
