@@ -291,6 +291,10 @@
         
         /* Chips & Data Display */
         .data-grid { display: grid; gap: 12px; margin-top: 16px; }
+        /* Ringkasan bulanan: 3 kotak panjang, lalu 2 kotak setengah berdampingan */
+        .data-grid.sum2 { grid-template-columns: 1fr 1fr; }
+        .data-grid.sum2 .wide { grid-column: span 2; }
+        .chip-content { min-width: 0; }
         .data-chip {
             background: rgba(255,255,255,0.6);
             padding: 12px;
@@ -662,20 +666,42 @@
             </div>
             
             <div class="glass-card">
-                <h3 style="font-size: 1rem; margin-bottom: 12px; color: var(--c-blue);">Ringkasan Bulan Ini</h3>
-                <div class="data-grid">
-                    <div class="data-chip">
+                <h3 style="font-size: 1rem; margin-bottom: 4px; color: var(--c-blue);">Ringkasan Bulan Ini</h3>
+                <div style="font-size:0.8rem; color:var(--c-text-light); font-weight:600;" id="sum-sub">Agustus 2026</div>
+                <div class="data-grid sum2">
+                    <div class="data-chip wide">
                         <div class="chip-icon" style="background:var(--c-green)">H</div>
                         <div class="chip-content">
                             <div class="chip-label">Hadir</div>
-                            <div class="chip-value" id="sum-h">3 Hari</div>
+                            <div class="chip-value" id="sum-h">0 Hari</div>
                         </div>
                     </div>
-                    <div class="data-chip">
+                    <div class="data-chip wide">
                         <div class="chip-icon" style="background:var(--c-yellow)">T</div>
                         <div class="chip-content">
                             <div class="chip-label">Terlambat</div>
                             <div class="chip-value" id="sum-t">0 Hari</div>
+                        </div>
+                    </div>
+                    <div class="data-chip wide">
+                        <div class="chip-icon" style="background:var(--c-pink)">A</div>
+                        <div class="chip-content">
+                            <div class="chip-label">Tidak Hadir</div>
+                            <div class="chip-value" id="sum-a">0 Hari</div>
+                        </div>
+                    </div>
+                    <div class="data-chip">
+                        <div class="chip-icon" style="background:var(--c-blue)">TD</div>
+                        <div class="chip-content">
+                            <div class="chip-label">Target Dibuat</div>
+                            <div class="chip-value" id="sum-td">0</div>
+                        </div>
+                    </div>
+                    <div class="data-chip">
+                        <div class="chip-icon" style="background:var(--c-green)">TS</div>
+                        <div class="chip-content">
+                            <div class="chip-label">Target Selesai</div>
+                            <div class="chip-value" id="sum-ts">0</div>
                         </div>
                     </div>
                 </div>
@@ -1268,27 +1294,13 @@ function updateDraftUI() {
             let html = '';
             for(let i = 0; i < firstDay; i++) html += `<div class="cal-day empty"></div>`;
             
-            let hCount = 0;
-            let tCount = 0;
-            
             for(let i = 1; i <= daysInM; i++) {
                 const mm = (S.calM + 1);
                 const dd = i;
                 const key = `${S.calY}-${mm}-${dd}`;
-                
+
                 const hasD = !!S.data[key];
-                if(hasD) {
-                    hCount++;
-                    if(S.data[key].in) {
-                        const tIn = S.data[key].in.split(':');
-                        const hr = parseInt(tIn[0]||0);
-                        const mn = parseInt(tIn[1]||0);
-                        if (hr > 10 || (hr === 10 && mn > 15)) {
-                            tCount++;
-                        }
-                    }
-                }
-                
+
                 let cls = 'cal-day';
                 if(hasD) cls += ' has-data';
                 if(new Date().toDateString() === new Date(S.calY, S.calM, i).toDateString()) cls += ' today';
@@ -1296,8 +1308,74 @@ function updateDraftUI() {
                 html += `<div class="${cls}" onclick="openM('${key}')">${i}</div>`;
             }
             document.getElementById('cal-body').innerHTML = html;
-            document.getElementById('sum-h').innerText = hCount + " Hari";
-            document.getElementById('sum-t').innerText = tCount + " Hari";
+            renderMonthSummary();
+        }
+
+        // ── RINGKASAN BULANAN ──
+        function isTerlambat(rec) {
+            const st = String(rec.status || '');
+            if (st) return st.indexOf('Terlambat') >= 0;
+            if (!rec.in) return false;
+            const p = String(rec.in).split(':');
+            const hr = parseInt(p[0] || 0, 10), mn = parseInt(p[1] || 0, 10);
+            return hr > 10 || (hr === 10 && mn > 15);
+        }
+        function countTargets(rec) {
+            // Data Spreadsheet berupa teks: "2/3 selesai\n1. [v] A\n2. [ ] B"
+            if (typeof rec.target === 'string' && rec.target.trim()) {
+                const lines = rec.target.split('\n');
+                let total = 0, done = 0;
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].indexOf('[v] ') >= 0) { total++; done++; }
+                    else if (lines[i].indexOf('[ ] ') >= 0) { total++; }
+                }
+                if (total === 0) {
+                    const m = lines[0].match(/(\d+)\s*\/\s*(\d+)/);
+                    if (m) { done = +m[1]; total = +m[2]; }
+                }
+                return { total, done };
+            }
+            // Data lokal berupa array objek
+            if (Array.isArray(rec.targets)) {
+                return { total: rec.targets.length, done: rec.targets.filter(t => t.d || t.done).length };
+            }
+            if (Array.isArray(rec.tgs)) return { total: rec.tgs.length, done: rec.tgs.length };
+            return { total: 0, done: 0 };
+        }
+        function monthStats() {
+            const y = S.calY, m0 = S.calM;                    // m0 = bulan 0-indeks
+            const dim = new Date(y, m0 + 1, 0).getDate();
+            const now = new Date();
+            // Hari kerja hanya dihitung sampai hari ini; bulan mendatang tidak dihitung alpa
+            let batas = dim;
+            if (y === now.getFullYear() && m0 === now.getMonth()) batas = now.getDate();
+            else if (y > now.getFullYear() || (y === now.getFullYear() && m0 > now.getMonth())) batas = 0;
+
+            let hadir = 0, telat = 0, alpa = 0, tgt = 0, tgtDone = 0;
+            for (let d = 1; d <= dim; d++) {
+                const rec = S.data[`${y}-${m0 + 1}-${d}`];
+                const dow = new Date(y, m0, d).getDay();
+                const hariKerja = (dow >= 1 && dow <= 5);
+                if (rec) {
+                    hadir++;
+                    if (isTerlambat(rec)) telat++;
+                    const t = countTargets(rec); tgt += t.total; tgtDone += t.done;
+                } else if (hariKerja && d <= batas) {
+                    alpa++;
+                }
+            }
+            return { hadir, telat, alpa, tgt, tgtDone };
+        }
+        function renderMonthSummary() {
+            const mNames = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+            const s = monthStats();
+            const set = (id, v) => { const e = document.getElementById(id); if (e) e.innerText = v; };
+            set('sum-sub', mNames[S.calM] + ' ' + S.calY);
+            set('sum-h', s.hadir + ' Hari');
+            set('sum-t', s.telat + ' Hari');
+            set('sum-a', s.alpa + ' Hari');
+            set('sum-td', s.tgt);
+            set('sum-ts', s.tgtDone);
         }
 
         function openM(key) {

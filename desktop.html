@@ -1206,6 +1206,14 @@ function fetchHistoryFromSheet() {
 function renderCal(){const y=S.cy,m=S.cm;document.getElementById('caltit').textContent=MN[m]+' '+y;const g=document.getElementById('cg');g.innerHTML='';const fd=new Date(y,m-1,1).getDay(),dim=new Date(y,m,0).getDate(),dip=new Date(y,m-1,0).getDate();for(let i=fd-1;i>=0;i--)g.appendChild(mkD(dip-i,true,false,false,false,null));const tn=new Date();let any=false;for(let day=1;day<=dim;day++){const key=y+'-'+m+'-'+day,rec=S.data[key];const isTd=(y===tn.getFullYear()&&m===tn.getMonth()+1&&day===tn.getDate());const isWk=new Date(y,m-1,day).getDay()%6===0;let dot=null;if(rec){any=true;dot=(isTd&&!S.pulang)?'p':'g'}const d=mkD(day,false,isTd,isWk,!!rec,dot);if(rec)d.onclick=()=>openM(key);g.appendChild(d)}const tot=fd+dim,rem=7-(tot%7);if(rem<7)for(let i=1;i<=rem;i++)g.appendChild(mkD(i,true,false,false,false,null));document.getElementById('calhint').style.display=any?'none':'block';renderMonthSummary()}
 
 // ── RINGKASAN BULANAN ──
+function isTerlambat(rec){
+  const st=String(rec.status||'');
+  if(st)return st.indexOf('Terlambat')>=0;
+  const jam=rec.in||rec.masuk;
+  if(!jam)return false;
+  const p=String(jam).split(':'),hr=parseInt(p[0]||0,10),mn=parseInt(p[1]||0,10);
+  return hr>10||(hr===10&&mn>15);
+}
 function countTargets(rec){
   // Data dari Spreadsheet berupa teks: "3/3 selesai\n1. [v] ...\n2. [ ] ..."
   if(typeof rec.target==='string'&&rec.target.trim()){
@@ -1222,7 +1230,7 @@ function countTargets(rec){
     return {total,done};
   }
   // Data lokal berupa array objek {l,d}
-  if(Array.isArray(rec.targets))return {total:rec.targets.length,done:rec.targets.filter(t=>t.d).length};
+  if(Array.isArray(rec.targets))return {total:rec.targets.length,done:rec.targets.filter(t=>t.d||t.done).length};
   return {total:0,done:0};
 }
 function monthStats(){
@@ -1238,7 +1246,7 @@ function monthStats(){
     const dow=new Date(y,m-1,d).getDay(),hariKerja=(dow>=1&&dow<=5);
     if(rec){
       hadir++;
-      if(String(rec.status||'').indexOf('Terlambat')>=0)telat++;
+      if(isTerlambat(rec))telat++;
       const t=countTargets(rec);tgt+=t.total;tgtDone+=t.done;
     } else if(hariKerja&&d<=batas){
       alpa++;
