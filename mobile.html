@@ -978,36 +978,14 @@ function restoreUI() {
                 v.setAttribute('playsinline', '');
                 v.setAttribute('muted', '');
                 v.muted = true;
-                v.play().catch(e=>console.log(e));
-                v.muted = true;
-                // Force play - needed on mobile browsers
-                const playPromise = v.play();
-                if (playPromise) {
-                    playPromise.catch(() => {
-                        // Autoplay blocked - will retry on user interaction
-                        document.addEventListener('touchstart', function retryPlay() {
-                            v.play().catch(()=>{});
-                            document.removeEventListener('touchstart', retryPlay);
-                        }, { once: true });
+                const p = v.play();
+                if (p !== undefined) {
+                    p.catch(e => {
+                        document.body.addEventListener('click', () => { v.play(); }, {once: true});
                     });
                 }
             });
         }
-
-        // Re-attach stream when switching tabs (video might lose stream when hidden)
-        const origSwitchTab = switchTab;
-        switchTab = function(tab) {
-            origSwitchTab(tab);
-            // Small delay to let DOM update, then re-attach camera
-            setTimeout(() => attachStream(), 100);
-        };
-
-        // Also re-attach on visibility change (when coming back to the tab)
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && S.stream) {
-                setTimeout(() => attachStream(), 200);
-            }
-        });
 
         function captureFrame(vidId) {
             const vid = document.getElementById(vidId);

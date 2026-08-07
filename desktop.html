@@ -1078,16 +1078,42 @@ function fetchHistoryFromSheet() {
 function renderCal(){const y=S.cy,m=S.cm;document.getElementById('caltit').textContent=MN[m]+' '+y;const g=document.getElementById('cg');g.innerHTML='';const fd=new Date(y,m-1,1).getDay(),dim=new Date(y,m,0).getDate(),dip=new Date(y,m-1,0).getDate();for(let i=fd-1;i>=0;i--)g.appendChild(mkD(dip-i,true,false,false,false,null));const tn=new Date();let any=false;for(let day=1;day<=dim;day++){const key=y+'-'+m+'-'+day,rec=S.data[key];const isTd=(y===tn.getFullYear()&&m===tn.getMonth()+1&&day===tn.getDate());const isWk=new Date(y,m-1,day).getDay()%6===0;let dot=null;if(rec){any=true;dot=(isTd&&!S.pulang)?'p':'g'}const d=mkD(day,false,isTd,isWk,!!rec,dot);if(rec)d.onclick=()=>openM(key);g.appendChild(d)}const tot=fd+dim,rem=7-(tot%7);if(rem<7)for(let i=1;i<=rem;i++)g.appendChild(mkD(i,true,false,false,false,null));document.getElementById('calhint').style.display=any?'none':'block'}
 function mkD(n,other,today,wknd,hd,dot){const d=document.createElement('div');d.className='cday'+(other?' other':'')+(today?' today':'')+(wknd&&!today?' wknd':'')+(hd?' hd':'');let h='<span class="cdn">'+n+'</span>';if(dot)h+='<div class="cdot '+dot+'"></div>';d.innerHTML=h;return d}
 function prevM(){S.cm--;if(S.cm<1){S.cm=12;S.cy--}renderCal()}function nextM(){S.cm++;if(S.cm>12){S.cm=1;S.cy++}renderCal()}
-function openM(key){const r=S.data[key];if(!r)return;const[y,m,d]=key.split('-').map(Number);const ds=new Date(y,m-1,d).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});document.getElementById('m-ttl').textContent=ds;document.getElementById('m-mi').textContent=r.masuk+' WIB';document.getElementById('m-mo').textContent=r.pulang+' WIB';document.getElementById('m-jam').textContent=dur(r.masuk,r.pulang);document.getElementById('m-log').textContent=r.log||'—';const dc=r.targets.filter(t=>t.d).length;document.getElementById('m-bdg').innerHTML='<span class="sbdg sb-on">Hadir</span><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:700;background:rgba(203,46,114,.1);color:var(--pk2);border:1px solid rgba(203,46,114,.2)">Youtz HQ</span><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:700;background:rgba(247,203,7,.1);color:#997A00;border:1px solid rgba(247,203,7,.2)">'+dc+'/'+r.targets.length+' Target</span>';const tw=document.getElementById('m-tgts');tw.innerHTML=r.targets.length?r.targets.map(t=>'<div class="mtgt"><div class="mcbox" style="background:'+(t.d?'var(--grn)':'rgba(15,23,42,.1)')+';">'+(t.d?'&#10003;':'')+'</div><span style="'+(t.d?'text-decoration:line-through;color:var(--tw4)':'color:var(--tw)')+'">'+t.l+'</span></div>').join(''):'<div style="font-size:13px;color:var(--tw3);padding:8px 0;font-weight:500;">Tidak ada target tercatat.</div>';
-const mm = document.getElementById('m-img-m');
-if(mm) mm.innerHTML = r.masukImg ? `<img src="${r.masukImg}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : 'IN';
-const mp = document.getElementById('m-img-p');
-if(mp) mp.innerHTML = r.pulangImg ? `<img src="${r.pulangImg}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : 'OUT';
-document.getElementById('movl').classList.add('show');
-document.body.style.overflow='hidden'}
+function openM(key){
+  const r=S.data[key];if(!r)return;
+  const[y,m,d]=key.split('-').map(Number);
+  const ds=new Date(y,m-1,d).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('m-ttl').textContent=ds;
+  const tM = r.in || r.masuk || '';
+  const tP = r.out || r.pulang || '';
+  document.getElementById('m-mi').textContent=(tM?tM+' WIB':'--:--:-- WIB');
+  document.getElementById('m-mo').textContent=(tP?tP+' WIB':'--:--:-- WIB');
+  document.getElementById('m-jam').textContent=dur(tM, tP);
+  document.getElementById('m-log').textContent=r.log||'Data tersimpan di server.';
+  const h = r.status==='Terlambat'?'<span class="sbdg sb-late">Terlambat</span>':(r.status==='Terlambat (toleransi)'?'<span class="sbdg sb-late">Toleransi</span>':'<span class="sbdg sb-on">On Time</span>');
+  document.getElementById('m-bdg').innerHTML=h+'<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:700;background:rgba(203,46,114,.1);color:var(--pk2);border:1px solid rgba(203,46,114,.2)">Youtz HQ</span>';
+  const tw=document.getElementById('m-tgts');
+  if(r.targets){
+    tw.innerHTML=r.targets.length?r.targets.map(t=>'<div class="mtgt"><div class="mcbox" style="background:'+(t.d?'var(--grn)':'rgba(15,23,42,.1)')+';">'+(t.d?'&#10003;':'')+'</div><span style="'+(t.d?'text-decoration:line-through;color:var(--tw4)':'color:var(--tw)')+'">'+t.l+'</span></div>').join(''):'<div style="font-size:13px;color:var(--tw3);padding:8px 0;font-weight:500;">Tidak ada target tercatat.</div>';
+  } else {
+    tw.innerHTML='<div style="font-size:13px;color:var(--tw3);padding:8px 0;font-weight:500;">Target tersimpan di server.</div>';
+  }
+  const mm = document.getElementById('m-img-m');
+  if(mm) mm.innerHTML = r.masukImg ? `<img src="${r.masukImg}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : 'IN';
+  const mp = document.getElementById('m-img-p');
+  if(mp) mp.innerHTML = r.pulangImg ? `<img src="${r.pulangImg}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : 'OUT';
+  document.getElementById('movl').classList.add('show');
+  document.body.style.overflow='hidden'
+}
 function closeM(){document.getElementById('movl').classList.remove('show');document.body.style.overflow=''}
 function fmt(d){const p=v=>String(v).padStart(2,'0');return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())}
-function dur(t1,t2){const p=s=>s.split(':').map(Number);const[h1,m1,s1=0]=p(t1);const[h2,m2,s2=0]=p(t2);let diff=(h2*3600+m2*60+s2)-(h1*3600+m1*60+s1);if(diff<0)diff+=86400;return Math.floor(diff/3600)+' Jam '+Math.floor((diff%3600)/60)+' Menit'}
+function dur(t1,t2){
+  if(!t1||!t2||t1===''||t2==='')return '-';
+  const p=s=>s.split(':').map(Number);
+  const[h1,m1,s1=0]=p(t1);const[h2,m2,s2=0]=p(t2);
+  let diff=(h2*3600+m2*60+s2)-(h1*3600+m1*60+s1);
+  if(diff<0)diff+=86400;
+  return Math.floor(diff/3600)+' Jam '+Math.floor((diff%3600)/60)+' Menit'
+}
 upP();ucc();fetchHistoryFromSheet();
 
 
