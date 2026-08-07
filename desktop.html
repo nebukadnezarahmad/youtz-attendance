@@ -1063,9 +1063,13 @@ function fetchHistoryFromSheet() {
                 });
                 try { localStorage.setItem('youtz_cal', JSON.stringify(S.data)); } catch(e){}
             }
+            if (!S.data) S.data = {};
+            isFetchingHistory = false;
+            renderCal();
         })
-        .catch(err => console.error('Gagal memuat history', err))
-        .finally(() => {
+        .catch(err => {
+            console.error('Gagal memuat history', err);
+            if (!S.data) S.data = {};
             isFetchingHistory = false;
             renderCal();
         });
