@@ -1112,8 +1112,8 @@ function restoreUI() {
         function saveToCal() {
             const today = new Date();
             const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = (today.getMonth() + 1);
+            const dd = today.getDate();
             const key = `${yyyy}-${mm}-${dd}`;
             
             const checks = document.querySelectorAll('.checkbox-custom.checked');
@@ -1192,8 +1192,8 @@ function restoreUI() {
             let tCount = 0;
             
             for(let i = 1; i <= daysInM; i++) {
-                const mm = String(S.calM + 1).padStart(2, '0');
-                const dd = String(i).padStart(2, '0');
+                const mm = (S.calM + 1);
+                const dd = i;
                 const key = `${S.calY}-${mm}-${dd}`;
                 
                 const hasD = !!S.data[key];
