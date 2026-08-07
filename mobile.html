@@ -284,6 +284,10 @@
         .btn-blue { background: linear-gradient(135deg, #007ED4, #005691); }
         .btn-pink { background: linear-gradient(135deg, #CB2E72, #9E1F55); }
         .btn-green { background: linear-gradient(135deg, #10B981, #059669); }
+        .target-del { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-text-light); font-size:14px; font-weight:700; flex-shrink:0; margin-left:auto; }
+        .target-del:active { background: rgba(203,46,114,0.14); color: var(--c-pink); }
+        .btn-draft { height: 46px; font-size: 0.9rem; margin-top: 12px; background: linear-gradient(135deg, #007ED4, #005691); }
+        .btn-draft.saved { background: linear-gradient(135deg, #10B981, #059669); }
         
         /* Chips & Data Display */
         .data-grid { display: grid; gap: 12px; margin-top: 16px; }
@@ -578,24 +582,29 @@
                     <div class="target-item">
                         <div class="checkbox-custom" onclick="toggleCheck(this)"></div>
                         <div class="target-text">Liputan Event Youth Community Festival</div>
-                        <div class="target-del" onclick="delTarget(this)" style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-text-light); font-size:16px; flex-shrink:0; margin-left:auto;">&#10005;</div>
+                        <div class="target-del" onclick="delTarget(this)" title="Hapus target">&#10005;</div>
                     </div>
                     <div class="target-item">
                         <div class="checkbox-custom checked" onclick="toggleCheck(this)"></div>
                         <div class="target-text">Drafting Script Video Reels TikTok @youtzmedia</div>
-                        <div class="target-del" onclick="delTarget(this)" style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-text-light); font-size:16px; flex-shrink:0; margin-left:auto;">&#10005;</div>
+                        <div class="target-del" onclick="delTarget(this)" title="Hapus target">&#10005;</div>
                     </div>
                     <div class="target-item">
                         <div class="checkbox-custom" onclick="toggleCheck(this)"></div>
                         <div class="target-text">Editing Video Pitch Deck Youtz Group Corporation</div>
-                        <div class="target-del" onclick="delTarget(this)" style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-text-light); font-size:16px; flex-shrink:0; margin-left:auto;">&#10005;</div>
+                        <div class="target-del" onclick="delTarget(this)" title="Hapus target">&#10005;</div>
                     </div>
                 </div>
                 
+                <button class="btn btn-draft" id="btn-draft-tgt" onclick="saveDraftTarget()">Simpan Draft Target</button>
+
                 <h3 style="font-size:0.9rem; color:var(--c-text-light); margin-top:24px;">LAPORAN PEKERJAAN</h3>
                 <textarea class="textarea-custom" id="work-log" placeholder="Tuliskan detail pekerjaan yang telah diselesaikan hari ini..." oninput="saveState()"></textarea>
-                
-                <button class="btn btn-blue" id="btn-save-ws" onclick="saveWorkspace()">Simpan & Lanjut Absen Pulang</button>
+                <button class="btn btn-draft" id="btn-draft-log" onclick="saveDraftLog()">Simpan Draft Laporan</button>
+
+                <div style="font-size:0.78rem; color:var(--c-text-light); margin-top:14px; line-height:1.6; padding:10px 12px; background:rgba(255,255,255,0.7); border-radius:12px;" id="draft-hint">Draft tersimpan otomatis per tanggal. Simpan draft <strong>target</strong> dan <strong>laporan</strong> untuk membuka tombol Absen Pulang.</div>
+
+                <button class="btn btn-blue hidden" id="btn-save-ws" onclick="saveWorkspace()" style="margin-top:16px">Simpan &amp; Lanjut Absen Pulang</button>
             </div>
             
             <div id="pulang-section" class="glass-card hidden">
@@ -781,6 +790,7 @@ function doLogout() {
         // State
         const S = {
             masuk: false, pulang: false,
+            draft: false, draftTgt: false, draftLog: false, draftTgtTime: '', draftLogTime: '',
             timeIn: null, timeOut: null,
             imgIn: null, imgOut: null,
             loc: "Mencari lokasi...",
@@ -845,7 +855,9 @@ function saveState() {
         });
     });
     const stateObj = {
-        masuk: S.masuk, pulang: S.pulang, draft: document.getElementById('s1-2').classList.contains('done'),
+        masuk: S.masuk, pulang: S.pulang, draft: S.draft,
+        draftTgt: S.draftTgt, draftLog: S.draftLog,
+        draftTgtTime: S.draftTgtTime, draftLogTime: S.draftLogTime,
         timeIn: S.timeIn, timeOut: S.timeOut, imgIn: S.imgIn, imgOut: S.imgOut, lStatus: S.lStatus,
         targets: targets, log: document.getElementById('work-log').value.trim(),
         curTab: S.curTab
@@ -868,6 +880,8 @@ function loadState() {
             S.masuk = saved.masuk; S.pulang = saved.pulang; S.draft = saved.draft;
             S.timeIn = saved.timeIn; S.timeOut = saved.timeOut;
             S.imgIn = saved.imgIn; S.imgOut = saved.imgOut; S.lStatus = saved.lStatus;
+            S.draftTgt = !!saved.draftTgt; S.draftLog = !!saved.draftLog;
+            S.draftTgtTime = saved.draftTgtTime || ''; S.draftLogTime = saved.draftLogTime || '';
             if (saved.targets) S.loadedTargets = saved.targets;
             if (saved.log) S.loadedLog = saved.log;
             if (saved.curTab) S.curTab = saved.curTab;
@@ -889,13 +903,9 @@ function restoreUI() {
         document.getElementById('masuk-result-area').classList.remove('hidden');
         document.getElementById('s1-1').classList.add('done');
         document.getElementById('s1-2').classList.add('active');
-        if (S.loadedTargets && S.loadedTargets.length > 0) {
+        if (S.loadedTargets) {
             const list = document.getElementById('t-list'); list.innerHTML = '';
-            S.loadedTargets.forEach(t => {
-                const item = document.createElement('div'); item.className = 'target-item';
-                item.innerHTML = '<div class="checkbox-custom ' + (t.d ? 'checked' : '') + '" onclick="toggleCheck(this)"></div><div class="target-text">' + t.l + '</div><div class="target-del" onclick="delTarget(this)" style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-text-light); font-size:16px; flex-shrink:0; margin-left:auto;">&#10005;</div>';
-                list.appendChild(item);
-            });
+            S.loadedTargets.forEach(t => list.appendChild(mkTargetItem(t.l, t.d)));
             updateProg();
         }
         if (S.loadedLog) document.getElementById('work-log').value = S.loadedLog;
@@ -922,6 +932,48 @@ function restoreUI() {
         document.getElementById('s1-3').classList.remove('active');
         switchTab('kalender');
     }
+    updateDraftUI();
+}
+
+function stampNow() {
+    const n = new Date(), p = v => String(v).padStart(2, '0');
+    return p(n.getHours()) + ':' + p(n.getMinutes());
+}
+
+function saveDraftTarget() {
+    if (!S.masuk) return showToast("Anda belum Absen Masuk!");
+    const n = document.querySelectorAll('#t-list .target-item').length;
+    if (!n) return showToast("Tambahkan minimal 1 target terlebih dahulu.");
+    S.draftTgt = true; S.draftTgtTime = stampNow();
+    saveState(); updateDraftUI();
+    showToast("Draft target tersimpan (" + n + " target).");
+}
+
+function saveDraftLog() {
+    if (!S.masuk) return showToast("Anda belum Absen Masuk!");
+    const log = document.getElementById('work-log').value.trim();
+    if (!log) return showToast("Tuliskan laporan pekerjaan terlebih dahulu.");
+    S.draftLog = true; S.draftLogTime = stampNow();
+    saveState(); updateDraftUI();
+    showToast("Draft laporan tersimpan.");
+}
+
+function updateDraftUI() {
+    const bt = document.getElementById('btn-draft-tgt');
+    if (bt) {
+        bt.textContent = S.draftTgt ? ('Draft Target Tersimpan ' + (S.draftTgtTime || '')) : 'Simpan Draft Target';
+        bt.classList.toggle('saved', !!S.draftTgt);
+    }
+    const bl = document.getElementById('btn-draft-log');
+    if (bl) {
+        bl.textContent = S.draftLog ? ('Draft Laporan Tersimpan ' + (S.draftLogTime || '')) : 'Simpan Draft Laporan';
+        bl.classList.toggle('saved', !!S.draftLog);
+    }
+    const ready = S.draftTgt && S.draftLog && !S.draft;
+    const bs = document.getElementById('btn-save-ws');
+    if (bs) bs.classList.toggle('hidden', !ready);
+    const hint = document.getElementById('draft-hint');
+    if (hint) hint.classList.toggle('hidden', !!(S.draft || ready));
 }
 
         let _toastT; function showToast(msg, dur=3000, bg='') {
@@ -1039,14 +1091,19 @@ function restoreUI() {
         }
 
 
+        function mkTargetItem(label, done) {
+            const item = document.createElement('div');
+            item.className = 'target-item';
+            item.innerHTML = '<div class="checkbox-custom' + (done ? ' checked' : '') + '" onclick="toggleCheck(this)"></div><div class="target-text"></div><div class="target-del" onclick="delTarget(this)" title="Hapus target">&#10005;</div>';
+            item.querySelector('.target-text').textContent = label;
+            return item;
+        }
+
         function addTarget() {
             const inp = document.getElementById('new-target-input');
             const v = inp.value.trim();
             if (!v) return;
-            const item = document.createElement('div');
-            item.className = 'target-item';
-            item.innerHTML = '<div class="checkbox-custom" onclick="toggleCheck(this)"></div><div class="target-text">' + v + '</div><div class="target-del" onclick="delTarget(this)" style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--c-text-light); font-size:16px; flex-shrink:0; margin-left:auto;">&#10005;</div>';
-            document.getElementById('t-list').appendChild(item);
+            document.getElementById('t-list').appendChild(mkTargetItem(v, false));
             inp.value = '';
             updateProg();
             saveState();
@@ -1074,16 +1131,16 @@ function restoreUI() {
 
         function saveWorkspace() {
             if(!S.masuk) return showToast("Anda belum Absen Masuk!");
-            const checks = document.querySelectorAll('.checkbox-custom.checked');
-            if(checks.length === 0 && document.getElementById('work-log').value.trim() === '') {
-                return showToast("Isi minimal 1 target atau catatan");
+            if(!S.draftTgt || !S.draftLog) {
+                return showToast("Simpan draft target dan laporan terlebih dahulu.");
             }
-            
-            document.getElementById('btn-save-ws').classList.add('hidden');
+
+            S.draft = true;
             document.getElementById('pulang-section').classList.remove('hidden');
             document.getElementById('s1-2').classList.add('done');
             document.getElementById('s1-3').classList.add('active');
-            
+            updateDraftUI();
+
             // Scroll to pulang section
             setTimeout(() => {
                 document.getElementById('pulang-section').scrollIntoView({behavior: 'smooth'});

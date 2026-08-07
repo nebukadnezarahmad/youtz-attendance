@@ -464,6 +464,13 @@ body {
 .ctag { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:99px; font-size:9.5px; font-weight:700; margin-top:4px; }
 .ctag.done { background:rgba(16,185,129,.1); color:#047857; }
 .ctag.ip   { background:rgba(247,203,7,.15); color:#997A00; }
+.cdel {
+  width:26px; height:26px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--tw4); font-size:12px; font-weight:800; cursor:pointer;
+  transition:all var(--base) var(--sp);
+}
+.cdel:hover { background:rgba(203,46,114,.12); color:var(--pk); transform:scale(1.1); }
 
 /* Progress bar */
 .pbwrap { height:4px; background:rgba(15,23,42,0.06); border-radius:99px; overflow:hidden; margin-top:16px; }
@@ -719,27 +726,33 @@ body {
       <div class="panel" style="margin-bottom:0">
         <div class="addrow"><input class="itxt" id="nti" placeholder="Tambah target baru... (Enter)" onkeydown="if(event.key==='Enter')addT()"><button class="btn btn-pks" onclick="addT()">+ Tambah</button></div>
         <div class="clist" id="clist">
-          <div class="ci ck" onclick="tg(this)"><div class="cbox"><span class="cbi">✓</span></div><div class="ctxt"><div class="cl">Liputan Event Youth Community Festival</div><span class="ctag done">Selesai</span></div></div>
-          <div class="ci ck" onclick="tg(this)"><div class="cbox"><span class="cbi">✓</span></div><div class="ctxt"><div class="cl">Drafting Script Video Reels TikTok @youtzmedia</div><span class="ctag done">Selesai</span></div></div>
-          <div class="ci" onclick="tg(this)"><div class="cbox"><span class="cbi">✓</span></div><div class="ctxt"><div class="cl">Editing Video Pitch Deck Youtz Group Corporation</div><span class="ctag ip">In Progress</span></div></div>
+          <div class="ci ck" onclick="tg(this)"><div class="cbox"><span class="cbi">✓</span></div><div class="ctxt"><div class="cl">Liputan Event Youth Community Festival</div><span class="ctag done">Selesai</span></div><div class="cdel" onclick="delT(this,event)" title="Hapus target">✕</div></div>
+          <div class="ci ck" onclick="tg(this)"><div class="cbox"><span class="cbi">✓</span></div><div class="ctxt"><div class="cl">Drafting Script Video Reels TikTok @youtzmedia</div><span class="ctag done">Selesai</span></div><div class="cdel" onclick="delT(this,event)" title="Hapus target">✕</div></div>
+          <div class="ci" onclick="tg(this)"><div class="cbox"><span class="cbi">✓</span></div><div class="ctxt"><div class="cl">Editing Video Pitch Deck Youtz Group Corporation</div><span class="ctag ip">In Progress</span></div><div class="cdel" onclick="delT(this,event)" title="Hapus target">✕</div></div>
         </div>
         <div class="pbwrap"><div class="pb" id="pbar" style="width:66.6%"></div></div>
         <div class="pblbl"><span>Progress</span><span id="ppct">66.6%</span></div>
-        <div style="margin-top:20px;display:flex;justify-content:flex-end"><button class="btn btn-pks" onclick="wsTab('log')">Isi Laporan Kerja →</button></div>
+        <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-az" id="btn-draft-tgt" onclick="saveDraftTarget()" style="width:auto;padding:10px 18px;font-size:13px">Simpan Draft Target</button>
+          <button class="btn btn-pks" onclick="wsTab('log')">Isi Laporan Kerja →</button>
+        </div>
       </div>
     </div>
     <div class="wspane" id="wp-log">
       <div class="panel" style="margin-bottom:0">
-        <div style="font-size:12px;color:var(--tw3);font-weight:500;margin-bottom:14px;line-height:1.65;padding:10px 14px;background:rgba(255,255,255,0.8);border-radius:var(--r1);border:1px solid rgba(15,23,42,0.06)">Setelah disimpan, form <strong style="color:var(--az)">Absen Pulang</strong> akan muncul otomatis di bawah.</div>
+        <div style="font-size:12px;color:var(--tw3);font-weight:500;margin-bottom:14px;line-height:1.65;padding:10px 14px;background:rgba(255,255,255,0.8);border-radius:var(--r1);border:1px solid rgba(15,23,42,0.06)">Draft tersimpan otomatis per tanggal. Setelah draft target <strong style="color:var(--az)">dan</strong> laporan tersimpan, tombol <strong style="color:var(--az)">Simpan &amp; Lanjut Absen Pulang</strong> akan muncul.</div>
         <textarea class="wlog" id="wla" oninput="ucc(); saveState()" placeholder="Contoh:&#10;1. Liputan event Youth Festival di SCBD&#10;2. Menulis 2 artikel untuk website youtzmedia.id&#10;3. Meeting koordinasi konten tim kreatif"></textarea>
         <div class="lfoot">
           <span class="cc" id="cc">0 karakter</span>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-gl" onclick="document.getElementById('wla').value='';ucc()">Bersihkan</button>
-            <button class="btn btn-az" id="btn-draft" onclick="saveDraft()" style="width:auto;padding:10px 18px;font-size:13px">Simpan &amp; Lanjut<div class="arr">↗</div></button>
+            <button class="btn btn-gl" onclick="clearLog()">Bersihkan</button>
+            <button class="btn btn-az" id="btn-draft" onclick="saveDraftLog()" style="width:auto;padding:10px 18px;font-size:13px">Simpan Draft Laporan</button>
           </div>
         </div>
       </div>
+    </div>
+    <div id="draft-done" style="display:none;margin-top:16px">
+      <button class="btn btn-pk" onclick="lanjutPulang()">Simpan &amp; Lanjut Absen Pulang<div class="arr">→</div></button>
     </div>
   </div>
   <div class="pswrap" id="ps">
@@ -891,7 +904,7 @@ window.addEventListener('load', () => {
   restoreUI();
 });
 
-const S={masuk:false,pulang:false,draft:false,tMasuk:null,tPulang:null,cy:2026,cm:8,data:{}};
+const S={masuk:false,pulang:false,draft:false,draftTgt:false,draftLog:false,draftTgtTime:'',draftLogTime:'',tMasuk:null,tPulang:null,cy:2026,cm:8,data:{}};
 const MN=['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 Object.assign(S.data,{
   '2026-8-1':{masuk:'08:25',pulang:'17:22',targets:[{l:'Rapat editorial mingguan',d:true},{l:'Drafting konten mingguan',d:true},{l:'Update media kit brand',d:false}],log:'1. Rapat Tim Editorial mingguan\n2. Menulis 3 artikel blog\n3. Koordinasi konten sosmed'},
@@ -932,6 +945,7 @@ function saveState() {
   });
   const stateObj = {
     masuk: S.masuk, pulang: S.pulang, draft: S.draft, tMasuk: S.tMasuk, tPulang: S.tPulang, lStatus: S.lStatus,
+    draftTgt: S.draftTgt, draftLog: S.draftLog, draftTgtTime: S.draftTgtTime, draftLogTime: S.draftLogTime,
     masukImg: S.masukImg, pulangImg: S.pulangImg, targets: targets, log: document.getElementById('wla').value.trim()
   };
   try {
@@ -953,6 +967,8 @@ function loadState() {
       S.masuk = saved.masuk; S.pulang = saved.pulang; S.draft = saved.draft;
       S.tMasuk = saved.tMasuk ? new Date(saved.tMasuk) : null; S.tPulang = saved.tPulang ? new Date(saved.tPulang) : null;
       S.masukImg = saved.masukImg; S.pulangImg = saved.pulangImg; S.lStatus = saved.lStatus;
+      S.draftTgt = !!saved.draftTgt; S.draftLog = !!saved.draftLog;
+      S.draftTgtTime = saved.draftTgtTime || ''; S.draftLogTime = saved.draftLogTime || '';
       if (saved.targets) S.loadedTargets = saved.targets;
       if (saved.log) S.loadedLog = saved.log;
     } catch(e) {}
@@ -990,31 +1006,24 @@ function restoreUI() {
     b.style.background = 'linear-gradient(155deg,var(--grn),#047857)';
     b.style.boxShadow = 'var(--sh-gn)'; b.disabled = true;
     
-    if (S.loadedTargets && S.loadedTargets.length > 0) {
+    if (S.loadedTargets) {
       const l = document.getElementById('clist'); l.innerHTML = '';
-      S.loadedTargets.forEach(t => {
-        const el = document.createElement('div'); el.className = 'ci' + (t.d ? ' ck' : '');
-        el.onclick = function() { tg(this); saveState(); };
-        el.innerHTML = '<div class="cbox"><span class="cbi">&#10003;</span></div><div class="ctxt"><div class="cl">' + t.l + '</div><span class="' + (t.d ? 'ctag done' : 'ctag ip') + '">' + (t.d ? 'Selesai' : 'In Progress') + '</span></div>';
-        l.appendChild(el);
-      });
+      S.loadedTargets.forEach(t => l.appendChild(mkTargetEl(t.l, t.d)));
       upP();
     }
     if (S.loadedLog) { document.getElementById('wla').value = S.loadedLog; ucc(); }
     gTab('b');
   }
-  
+
   if (S.draft) {
     const log = document.getElementById('wla').value.trim();
     document.getElementById('sp-log').textContent = log.substring(0, 200) + (log.length > 200 ? '...' : '');
-    const b = document.getElementById('btn-draft');
-    b.textContent = 'Draft Tersimpan';
-    b.style.background = 'linear-gradient(155deg,var(--grn),#047857)';
     document.getElementById('pd3').className = 'psd act';
     const ps = document.getElementById('ps');
     ps.classList.add('show');
     gTab('b');
   }
+  updateDraftUI();
   
   if (S.pulang) {
     const b = document.getElementById('btn-p');
@@ -1056,9 +1065,62 @@ const ts=fmt(n);document.getElementById('cts-m').textContent=ts+' WIB';const cvM
 }saveState();sendToSheet('masuk');},1800)}
 function tg(el){el.classList.toggle('ck');const tag=el.querySelector('.ctag');if(el.classList.contains('ck')){tag.className='ctag done';tag.textContent='Selesai'}else{tag.className='ctag ip';tag.textContent='In Progress'}upP();saveState();}
 function upP(){const all=document.querySelectorAll('#clist .ci'),ck=document.querySelectorAll('#clist .ci.ck');const pct=all.length?Math.round(ck.length/all.length*1000)/10:0;document.getElementById('pbar').style.width=pct+'%';document.getElementById('ppct').textContent=pct+'%';if(document.getElementById('sh-pct'))document.getElementById('sh-pct').textContent=pct+'%';document.getElementById('tcnt').textContent=all.length;document.getElementById('tnb').textContent=all.length;document.getElementById('sp-done').textContent=ck.length;document.getElementById('sp-all').textContent=all.length}
-function addT(){const inp=document.getElementById('nti'),v=inp.value.trim();if(!v)return;const l=document.getElementById('clist'),el=document.createElement('div');el.className='ci';el.onclick=function(){tg(this)};el.innerHTML='<div class="cbox"><span class="cbi">&#10003;</span></div><div class="ctxt"><div class="cl">'+v+'</div><span class="ctag ip">In Progress</span></div>';l.appendChild(el);inp.value='';upP();saveState();toast('Target baru ditambahkan.')}
+function mkTargetEl(label,done){
+  const el=document.createElement('div');
+  el.className='ci'+(done?' ck':'');
+  el.onclick=function(){tg(this)};
+  el.innerHTML='<div class="cbox"><span class="cbi">&#10003;</span></div><div class="ctxt"><div class="cl"></div><span class="ctag '+(done?'done':'ip')+'">'+(done?'Selesai':'In Progress')+'</span></div><div class="cdel" onclick="delT(this,event)" title="Hapus target">&#10005;</div>';
+  el.querySelector('.cl').textContent=label;
+  return el;
+}
+function addT(){const inp=document.getElementById('nti'),v=inp.value.trim();if(!v)return;document.getElementById('clist').appendChild(mkTargetEl(v,false));inp.value='';upP();saveState();toast('Target baru ditambahkan.')}
+function delT(el,ev){
+  if(ev)ev.stopPropagation();
+  const it=el.closest('.ci');if(!it)return;
+  it.remove();upP();saveState();toast('Target dihapus.');
+}
 function ucc(){document.getElementById('cc').textContent=document.getElementById('wla').value.length+' karakter';}
-function saveDraft(){const log=document.getElementById('wla').value.trim();if(!log){toast('Tuliskan laporan pekerjaan terlebih dahulu.');return}S.draft=true;document.getElementById('sp-log').textContent=log.substring(0,200)+(log.length>200?'...':'');upP();const ps=document.getElementById('ps');ps.classList.add('show');ps.scrollIntoView({behavior:'smooth',block:'start'});const b=document.getElementById('btn-draft');b.textContent='Draft Tersimpan';b.style.background='linear-gradient(155deg,var(--grn),#047857)';b.disabled=true;document.getElementById('pd3').className='psd act';saveState();toast('Draft tersimpan — Form Absen Pulang sudah aktif.')}
+function clearLog(){document.getElementById('wla').value='';ucc();saveState()}
+function stampNow(){const n=new Date(),p=v=>String(v).padStart(2,'0');return p(n.getHours())+':'+p(n.getMinutes())}
+function saveDraftTarget(){
+  const n=document.querySelectorAll('#clist .ci').length;
+  if(!n){toast('Tambahkan minimal 1 target terlebih dahulu.');return}
+  S.draftTgt=true;S.draftTgtTime=stampNow();
+  saveState();updateDraftUI();
+  toast('Draft target tersimpan ('+n+' target) — akan dimuat lagi saat kamu buka besok.');
+}
+function saveDraftLog(){
+  const log=document.getElementById('wla').value.trim();
+  if(!log){toast('Tuliskan laporan pekerjaan terlebih dahulu.');return}
+  S.draftLog=true;S.draftLogTime=stampNow();
+  document.getElementById('sp-log').textContent=log.substring(0,200)+(log.length>200?'...':'');
+  saveState();updateDraftUI();
+  toast('Draft laporan tersimpan.');
+}
+function updateDraftUI(){
+  const done='linear-gradient(155deg,var(--grn),#047857)';
+  const bt=document.getElementById('btn-draft-tgt');
+  if(bt){
+    bt.textContent=S.draftTgt?('Draft Target Tersimpan '+(S.draftTgtTime||'')):'Simpan Draft Target';
+    bt.style.background=S.draftTgt?done:'';
+  }
+  const bl=document.getElementById('btn-draft');
+  if(bl){
+    bl.textContent=S.draftLog?('Draft Laporan Tersimpan '+(S.draftLogTime||'')):'Simpan Draft Laporan';
+    bl.style.background=S.draftLog?done:'';
+  }
+  const dd=document.getElementById('draft-done');
+  if(dd)dd.style.display=(S.draftTgt&&S.draftLog&&!S.draft)?'block':'none';
+}
+function lanjutPulang(){
+  if(!S.draftTgt||!S.draftLog){toast('Simpan draft target dan laporan terlebih dahulu.');return}
+  S.draft=true;
+  const ps=document.getElementById('ps');ps.classList.add('show');
+  document.getElementById('pd3').className='psd act';
+  updateDraftUI();saveState();
+  setTimeout(()=>ps.scrollIntoView({behavior:'smooth',block:'start'}),80);
+  toast('Draft tersimpan — Form Absen Pulang sudah aktif.');
+}
 function doPulang(){if(!camReady){toast('Izinkan kamera terlebih dahulu!');return} if(!locReady){toast('Tunggu lokasi GPS terdeteksi!');return} if(!S.masuk){toast('Lakukan absen masuk terlebih dahulu.');return}if(!S.draft){toast('Simpan laporan pekerjaan terlebih dahulu.');return}if(S.pulang){toast('Absen pulang sudah dilakukan.');return}const b=document.getElementById('btn-p');b.textContent='Memproses...';b.disabled=true;setTimeout(()=>{const n=new Date();S.pulang=true;S.tPulang=n; S.pulangImg=captureFrame('cam-v-p');const ts=fmt(n);document.getElementById('cts-p').textContent=ts+' WIB';const cvP = document.getElementById('cov-p');cvP.style.background = `linear-gradient(to bottom, rgba(15,23,42,0.1), rgba(15,23,42,0.8)), url(${S.pulangImg}) center/cover`;cvP.style.backdropFilter = 'none';const cvicP = cvP.querySelector('.cvic'); if(cvicP) cvicP.style.display = 'none';const cringP = cvP.querySelector('.cring'); if(cringP) cringP.style.display = 'none';document.getElementById('cov-p').classList.add('show');document.getElementById('chp-p').textContent=ts+' WIB';document.getElementById('rc-p').classList.add('show');document.getElementById('go-cal').style.display='block';document.getElementById('sl-b').classList.add('done');document.getElementById('pd2').className='psd done';document.getElementById('pd3').className='psd done';b.innerHTML='Absen Pulang Berhasil<div class="arr">&#10003;</div>';b.style.background='linear-gradient(155deg,var(--grn),#047857)';b.style.boxShadow='var(--sh-gn)';b.disabled=false;saveToCal();saveState();toast('Absen Pulang berhasil — '+ts+' WIB · Tersimpan ke kalender.');sendToSheet('pulang');},1800)}
 function saveToCal(){const t=new Date(),key=t.getFullYear()+'-'+(t.getMonth()+1)+'-'+t.getDate();const items=document.querySelectorAll('#clist .ci'),targets=[];items.forEach(it=>targets.push({l:it.querySelector('.cl').textContent,d:it.classList.contains('ck')}));S.data[key]={masuk:fmt(S.tMasuk),pulang:fmt(S.tPulang),targets,log:document.getElementById('wla').value.trim(), masukImg: S.masukImg, pulangImg: S.pulangImg}; try{localStorage.setItem('youtz_cal', JSON.stringify(S.data));}catch(e){}}
 let isFetchingHistory = false;
