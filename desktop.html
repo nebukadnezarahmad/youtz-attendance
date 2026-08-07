@@ -572,6 +572,21 @@ body {
 .jaml{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--tw4);margin-bottom:4px}
 .mtgt { display:flex; align-items:center; gap:12px; padding-bottom:10px; margin-bottom:10px; border-bottom:1px dashed var(--rim); font-size:13px; font-weight:500; color:var(--tx);}
 .mtgt > span { min-width:0; overflow-wrap:anywhere; word-break:break-word; }
+
+/* Ringkasan bulanan (kalender) */
+.msumgrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.msumgrid .wide { grid-column:span 2; }
+.mstat {
+  display:flex; align-items:center; gap:14px; min-width:0;
+  padding:16px 18px; border-radius:var(--r2);
+  border:1px solid var(--rim); background:rgba(255,255,255,0.85);
+  transition:all var(--base) var(--sp);
+}
+.mstat:hover { transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,126,212,0.08); }
+.msi { width:38px; height:38px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#fff; letter-spacing:.02em; }
+.msc { min-width:0; }
+.msl { font-size:9.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--tw3); }
+.msv { font-size:19px; font-weight:800; color:var(--tw); font-family:'JetBrains Mono',monospace; line-height:1.3; }
 .mtgt:last-child{border-bottom:none; margin-bottom:0; padding-bottom:0;}
 .mcbox{width:18px;height:18px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:transparent;background:#fff;border:1px solid var(--rim);}
 .mcbox[style*="var(--grn)"]{background:var(--az) !important; border-color:var(--az) !important; color:#fff !important;}
@@ -815,6 +830,18 @@ body {
       <div class="dowrow"><div class="dow">Min</div><div class="dow">Sen</div><div class="dow">Sel</div><div class="dow">Rab</div><div class="dow">Kam</div><div class="dow">Jum</div><div class="dow">Sab</div></div>
       <div class="calgrid" id="cg"></div>
       <div class="calhint" id="calhint" style="display:none">Belum ada data absensi. Selesaikan alur absen masuk, workspace, lalu absen pulang untuk menyimpan riwayat ke kalender.</div>
+    </div>
+  </div>
+  <div class="glass panel reveal" style="margin-top:20px;transition-delay:.14s">
+    <div class="phd" style="margin-bottom:18px">
+      <div><div class="pttl">Ringkasan Bulan Ini</div><div class="psub" id="ms-sub">Agustus 2026</div></div>
+    </div>
+    <div class="msumgrid">
+      <div class="mstat wide"><div class="msi" style="background:var(--grn)">H</div><div class="msc"><div class="msl">Hadir</div><div class="msv" id="ms-hadir">0 Hari</div></div></div>
+      <div class="mstat wide"><div class="msi" style="background:var(--yl);color:var(--tx)">T</div><div class="msc"><div class="msl">Terlambat</div><div class="msv" id="ms-telat">0 Hari</div></div></div>
+      <div class="mstat wide"><div class="msi" style="background:var(--pk)">A</div><div class="msc"><div class="msl">Tidak Hadir</div><div class="msv" id="ms-alpa">0 Hari</div></div></div>
+      <div class="mstat"><div class="msi" style="background:var(--az)">TD</div><div class="msc"><div class="msl">Target Dibuat</div><div class="msv" id="ms-tgt">0</div></div></div>
+      <div class="mstat"><div class="msi" style="background:var(--grn)">TS</div><div class="msc"><div class="msl">Target Diselesaikan</div><div class="msv" id="ms-tgtd">0</div></div></div>
     </div>
   </div>
 </div>
@@ -1176,7 +1203,58 @@ function fetchHistoryFromSheet() {
         });
 }
 
-function renderCal(){const y=S.cy,m=S.cm;document.getElementById('caltit').textContent=MN[m]+' '+y;const g=document.getElementById('cg');g.innerHTML='';const fd=new Date(y,m-1,1).getDay(),dim=new Date(y,m,0).getDate(),dip=new Date(y,m-1,0).getDate();for(let i=fd-1;i>=0;i--)g.appendChild(mkD(dip-i,true,false,false,false,null));const tn=new Date();let any=false;for(let day=1;day<=dim;day++){const key=y+'-'+m+'-'+day,rec=S.data[key];const isTd=(y===tn.getFullYear()&&m===tn.getMonth()+1&&day===tn.getDate());const isWk=new Date(y,m-1,day).getDay()%6===0;let dot=null;if(rec){any=true;dot=(isTd&&!S.pulang)?'p':'g'}const d=mkD(day,false,isTd,isWk,!!rec,dot);if(rec)d.onclick=()=>openM(key);g.appendChild(d)}const tot=fd+dim,rem=7-(tot%7);if(rem<7)for(let i=1;i<=rem;i++)g.appendChild(mkD(i,true,false,false,false,null));document.getElementById('calhint').style.display=any?'none':'block'}
+function renderCal(){const y=S.cy,m=S.cm;document.getElementById('caltit').textContent=MN[m]+' '+y;const g=document.getElementById('cg');g.innerHTML='';const fd=new Date(y,m-1,1).getDay(),dim=new Date(y,m,0).getDate(),dip=new Date(y,m-1,0).getDate();for(let i=fd-1;i>=0;i--)g.appendChild(mkD(dip-i,true,false,false,false,null));const tn=new Date();let any=false;for(let day=1;day<=dim;day++){const key=y+'-'+m+'-'+day,rec=S.data[key];const isTd=(y===tn.getFullYear()&&m===tn.getMonth()+1&&day===tn.getDate());const isWk=new Date(y,m-1,day).getDay()%6===0;let dot=null;if(rec){any=true;dot=(isTd&&!S.pulang)?'p':'g'}const d=mkD(day,false,isTd,isWk,!!rec,dot);if(rec)d.onclick=()=>openM(key);g.appendChild(d)}const tot=fd+dim,rem=7-(tot%7);if(rem<7)for(let i=1;i<=rem;i++)g.appendChild(mkD(i,true,false,false,false,null));document.getElementById('calhint').style.display=any?'none':'block';renderMonthSummary()}
+
+// ── RINGKASAN BULANAN ──
+function countTargets(rec){
+  // Data dari Spreadsheet berupa teks: "3/3 selesai\n1. [v] ...\n2. [ ] ..."
+  if(typeof rec.target==='string'&&rec.target.trim()){
+    const lines=rec.target.split('\n');
+    let total=0,done=0;
+    for(let i=1;i<lines.length;i++){
+      if(lines[i].indexOf('[v] ')>=0){total++;done++}
+      else if(lines[i].indexOf('[ ] ')>=0){total++}
+    }
+    if(total===0){
+      const m=lines[0].match(/(\d+)\s*\/\s*(\d+)/);
+      if(m){done=+m[1];total=+m[2]}
+    }
+    return {total,done};
+  }
+  // Data lokal berupa array objek {l,d}
+  if(Array.isArray(rec.targets))return {total:rec.targets.length,done:rec.targets.filter(t=>t.d).length};
+  return {total:0,done:0};
+}
+function monthStats(){
+  const y=S.cy,m=S.cm,dim=new Date(y,m,0).getDate(),now=new Date();
+  // Hari kerja hanya dihitung sampai hari ini; bulan mendatang tidak dihitung alpa
+  let batas=dim;
+  if(y===now.getFullYear()&&m===now.getMonth()+1)batas=now.getDate();
+  else if(y>now.getFullYear()||(y===now.getFullYear()&&m>now.getMonth()+1))batas=0;
+
+  let hadir=0,telat=0,alpa=0,tgt=0,tgtDone=0;
+  for(let d=1;d<=dim;d++){
+    const rec=S.data[y+'-'+m+'-'+d];
+    const dow=new Date(y,m-1,d).getDay(),hariKerja=(dow>=1&&dow<=5);
+    if(rec){
+      hadir++;
+      if(String(rec.status||'').indexOf('Terlambat')>=0)telat++;
+      const t=countTargets(rec);tgt+=t.total;tgtDone+=t.done;
+    } else if(hariKerja&&d<=batas){
+      alpa++;
+    }
+  }
+  return {hadir,telat,alpa,tgt,tgtDone};
+}
+function renderMonthSummary(){
+  const s=monthStats(),set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+  set('ms-sub',MN[S.cm]+' '+S.cy);
+  set('ms-hadir',s.hadir+' Hari');
+  set('ms-telat',s.telat+' Hari');
+  set('ms-alpa',s.alpa+' Hari');
+  set('ms-tgt',s.tgt);
+  set('ms-tgtd',s.tgtDone);
+}
 function mkD(n,other,today,wknd,hd,dot){const d=document.createElement('div');d.className='cday'+(other?' other':'')+(today?' today':'')+(wknd&&!today?' wknd':'')+(hd?' hd':'');let h='<span class="cdn">'+n+'</span>';if(dot)h+='<div class="cdot '+dot+'"></div>';d.innerHTML=h;return d}
 function prevM(){S.cm--;if(S.cm<1){S.cm=12;S.cy--}renderCal()}function nextM(){S.cm++;if(S.cm>12){S.cm=1;S.cy++}renderCal()}
 function openM(key){
