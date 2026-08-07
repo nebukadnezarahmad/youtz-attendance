@@ -1118,8 +1118,16 @@ async function initDevice() {
     camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     const vm = document.getElementById('cam-v-m');
     const vp = document.getElementById('cam-v-p');
-    if(vm) vm.srcObject = camStream;
-    if(vp) vp.srcObject = camStream;
+    if(vm) {
+      vm.srcObject = camStream;
+      vm.muted = true;
+      vm.play().catch(e=>console.log(e));
+    }
+    if(vp) {
+      vp.srcObject = camStream;
+      vp.muted = true;
+      vp.play().catch(e=>console.log(e));
+    }
     camReady = true;
   } catch(e) {
     console.error("Camera Error:", e);

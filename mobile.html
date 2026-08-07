@@ -971,13 +971,14 @@ function restoreUI() {
             videos.forEach(id => {
                 const v = document.getElementById(id);
                 if (!v) return;
-                // Only re-attach if not already playing
                 if (!v.srcObject || v.srcObject.id !== S.stream.id) {
                     v.srcObject = S.stream;
                 }
                 v.setAttribute('autoplay', '');
                 v.setAttribute('playsinline', '');
                 v.setAttribute('muted', '');
+                v.muted = true;
+                v.play().catch(e=>console.log(e));
                 v.muted = true;
                 // Force play - needed on mobile browsers
                 const playPromise = v.play();
