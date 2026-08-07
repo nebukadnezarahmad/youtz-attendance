@@ -1169,6 +1169,7 @@ function restoreUI() {
             for(let i = 0; i < firstDay; i++) html += `<div class="cal-day empty"></div>`;
             
             let hCount = 0;
+            let tCount = 0;
             
             for(let i = 1; i <= daysInM; i++) {
                 const mm = String(S.calM + 1).padStart(2, '0');
@@ -1176,7 +1177,17 @@ function restoreUI() {
                 const key = `${S.calY}-${mm}-${dd}`;
                 
                 const hasD = !!S.data[key];
-                if(hasD) hCount++;
+                if(hasD) {
+                    hCount++;
+                    if(S.data[key].in) {
+                        const tIn = S.data[key].in.split(':');
+                        const hr = parseInt(tIn[0]||0);
+                        const mn = parseInt(tIn[1]||0);
+                        if (hr > 10 || (hr === 10 && mn > 15)) {
+                            tCount++;
+                        }
+                    }
+                }
                 
                 let cls = 'cal-day';
                 if(hasD) cls += ' has-data';
@@ -1186,6 +1197,7 @@ function restoreUI() {
             }
             document.getElementById('cal-body').innerHTML = html;
             document.getElementById('sum-h').innerText = hCount + " Hari";
+            document.getElementById('sum-t').innerText = tCount + " Hari";
         }
 
         function openM(key) {
