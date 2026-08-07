@@ -55,8 +55,11 @@ function handleMasuk(sheet, data) {
   const jam = parseInt(jamMasuk.split(':')[0] || '0');
   const menit = parseInt(jamMasuk.split(':')[1] || '0');
   let status = 'On Time';
-  if (jam > 9 || (jam === 9 && menit > 0)) status = 'Terlambat';
-  if (jam >= 11) status = 'Alpha';
+  if (jam > 10 || (jam === 10 && menit > 15)) {
+    status = 'Terlambat';
+  } else if (jam === 10 && menit >= 1 && menit <= 15) {
+    status = 'Terlambat (toleransi)';
+  }
   
   // Tambah row baru
   sheet.appendRow([
