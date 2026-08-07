@@ -425,6 +425,8 @@ body {
 }
 .wstab { display:flex; align-items:center; gap:7px; padding:8px 18px; border-radius:var(--r2); font-size:13px; font-weight:700; color:var(--tw3); cursor:pointer; transition:all var(--base) var(--sp); user-select:none; position:relative; }
 .wstab:hover{color:var(--tw)}
+.wstab.locked { opacity:.45; cursor:not-allowed; }
+.wstab.locked:hover { color:var(--tw3); }
 .wstab.active { background:var(--az); color:#fff; box-shadow:var(--sh-az); }
 .tbdg { min-width:16px; height:16px; padding:0 4px; border-radius:99px; font-size:8.5px; font-weight:800; display:flex; align-items:center; justify-content:center; }
 .wstab.active .tbdg { background:rgba(255,255,255,.25); color:#fff; }
@@ -736,7 +738,7 @@ body {
         <div class="pblbl"><span>Progress</span><span id="ppct">66.6%</span></div>
         <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
           <button class="btn btn-az" id="btn-draft-tgt" onclick="saveDraftTarget()" style="width:auto;padding:10px 18px;font-size:13px">Simpan Draft Target</button>
-          <button class="btn btn-pks" onclick="wsTab('log')">Isi Laporan Kerja →</button>
+          <button class="btn btn-pks" id="btn-go-log" onclick="wsTab('log')">Isi Laporan Kerja →</button>
         </div>
       </div>
     </div>
@@ -935,7 +937,10 @@ function gTab(id){
     }
     requestAnimationFrame(arev)
 }
-function wsTab(id){['tgt','log'].forEach(t=>{document.getElementById('wt-'+t).classList.toggle('active',t===id);document.getElementById('wp-'+t).classList.toggle('active',t===id)})}
+function wsTab(id){
+  if(id==='log'&&!S.draftTgt){toast('Simpan Draft Target terlebih dahulu sebelum mengisi laporan pekerjaan.');return}
+  ['tgt','log'].forEach(t=>{document.getElementById('wt-'+t).classList.toggle('active',t===id);document.getElementById('wp-'+t).classList.toggle('active',t===id)})
+}
 
 function saveState() {
   const d = new Date();
@@ -1113,6 +1118,12 @@ function updateDraftUI(){
   }
   const dd=document.getElementById('draft-done');
   if(dd)dd.style.display=(S.draftTgt&&S.draftLog&&!S.draft)?'block':'none';
+  // Laporan pekerjaan baru bisa diisi setelah draft target tersimpan
+  const wl=document.getElementById('wt-log');
+  if(wl)wl.classList.toggle('locked',!S.draftTgt);
+  const gl=document.getElementById('btn-go-log');
+  if(gl){gl.style.opacity=S.draftTgt?'':'.45';gl.style.cursor=S.draftTgt?'':'not-allowed';}
+  if(!S.draftTgt&&document.getElementById('wp-log').classList.contains('active'))wsTab('tgt');
 }
 function lanjutPulang(){
   if(!S.draftTgt||!S.draftLog){toast('Simpan draft target dan laporan terlebih dahulu.');return}

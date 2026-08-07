@@ -602,7 +602,7 @@
                 <textarea class="textarea-custom" id="work-log" placeholder="Tuliskan detail pekerjaan yang telah diselesaikan hari ini..." oninput="saveState()"></textarea>
                 <button class="btn btn-draft" id="btn-draft-log" onclick="saveDraftLog()">Simpan Draft Laporan</button>
 
-                <div style="font-size:0.78rem; color:var(--c-text-light); margin-top:14px; line-height:1.6; padding:10px 12px; background:rgba(255,255,255,0.7); border-radius:12px;" id="draft-hint">Draft tersimpan otomatis per tanggal. Simpan draft <strong>target</strong> dan <strong>laporan</strong> untuk membuka tombol Absen Pulang.</div>
+                <div style="font-size:0.78rem; color:var(--c-text-light); margin-top:14px; line-height:1.6; padding:10px 12px; background:rgba(255,255,255,0.7); border-radius:12px;" id="draft-hint">Urutannya: simpan draft <strong>target</strong> dulu, lalu isi dan simpan draft <strong>laporan</strong>. Setelah keduanya tersimpan, tombol Absen Pulang akan muncul.</div>
 
                 <button class="btn btn-blue hidden" id="btn-save-ws" onclick="saveWorkspace()" style="margin-top:16px">Simpan &amp; Lanjut Absen Pulang</button>
             </div>
@@ -968,6 +968,16 @@ function updateDraftUI() {
     if (bl) {
         bl.textContent = S.draftLog ? ('Draft Laporan Tersimpan ' + (S.draftLogTime || '')) : 'Simpan Draft Laporan';
         bl.classList.toggle('saved', !!S.draftLog);
+        bl.disabled = !S.draftTgt;
+    }
+    // Laporan pekerjaan baru bisa diisi setelah draft target tersimpan
+    const logEl = document.getElementById('work-log');
+    if (logEl) {
+        logEl.disabled = !S.draftTgt;
+        logEl.style.opacity = S.draftTgt ? '' : '0.55';
+        logEl.placeholder = S.draftTgt
+            ? 'Tuliskan detail pekerjaan yang telah diselesaikan hari ini...'
+            : 'Simpan Draft Target terlebih dahulu untuk mengisi laporan.';
     }
     const ready = S.draftTgt && S.draftLog && !S.draft;
     const bs = document.getElementById('btn-save-ws');
