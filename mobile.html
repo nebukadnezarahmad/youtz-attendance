@@ -370,7 +370,7 @@
         .checkbox-custom.checked { background: var(--c-blue); }
         .checkbox-custom.checked::after { content: '✓'; color: white; font-weight: bold; font-size: 14px; }
         
-        .target-text { font-size: 0.9rem; line-height: 1.4; }
+        .target-text { font-size: 0.9rem; line-height: 1.4; min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
         
         .progress-container {
             height: 8px; background: rgba(0,0,0,0.1);
@@ -722,10 +722,10 @@
         </div>
         
         <h3 style="font-size:0.9rem; color:var(--c-text-light); margin-top:24px; border-bottom:1px solid var(--c-border); padding-bottom:8px;">Target Diselesaikan</h3>
-        <ul style="padding-left:20px; font-size:0.9rem; margin-top:12px; line-height:1.5;" id="mdl-targets"></ul>
+        <ul style="padding-left:20px; font-size:0.9rem; margin-top:12px; line-height:1.5; overflow-wrap:anywhere; word-break:break-word;" id="mdl-targets"></ul>
         
         <h3 style="font-size:0.9rem; color:var(--c-text-light); margin-top:24px; border-bottom:1px solid var(--c-border); padding-bottom:8px;">Catatan Pekerjaan</h3>
-        <div style="font-size:0.9rem; margin-top:12px; line-height:1.6; background:rgba(0,0,0,0.03); padding:12px; border-radius:12px;" id="mdl-log"></div>
+        <div style="font-size:0.9rem; margin-top:12px; line-height:1.6; background:rgba(0,0,0,0.03); padding:12px; border-radius:12px; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word;" id="mdl-log"></div>
         
         <button class="btn btn-blue" style="margin-top:24px;" onclick="closeM()">Tutup</button>
     </div>
