@@ -47,33 +47,36 @@ function handleHistory(staffName) {
     const lastRow = sheet.getLastRow();
     if (lastRow <= 1) return jsonResponse({ success: true, data: [] });
     
-    // Ambil kolom: Tanggal (A:1), Jam Masuk (C:3), Jam Pulang (D:4), Status (E:5)
-    // Ingat bahwa indeks getRange 1-based, array 0-based
-    const range = sheet.getRange(2, 1, lastRow - 1, 5);
-    const rows = range.getValues();
+    // Ambil kolom: Tanggal (A:1) s.d Laporan (I:9)
+    const range = sheet.getRange(2, 1, lastRow - 1, 9);
+    const rows = range.getDisplayValues();
     
     const history = [];
     const bulanIndo = {
-      'Januari': '01', 'Februari': '02', 'Maret': '03', 'April': '04', 'Mei': '05', 'Juni': '06',
-      'Juli': '07', 'Agustus': '08', 'September': '09', 'Oktober': '10', 'November': '11', 'Desember': '12'
+      'Januari': 1, 'Februari': 2, 'Maret': 3, 'April': 4, 'Mei': 5, 'Juni': 6,
+      'Juli': 7, 'Agustus': 8, 'September': 9, 'Oktober': 10, 'November': 11, 'Desember': 12,
+      'January': 1, 'February': 2, 'March': 3, 'May': 5, 'June': 6, 'July': 7,
+      'August': 8, 'October': 10, 'December': 12
     };
     
     for (let i = 0; i < rows.length; i++) {
-      const tanggalTeks = rows[i][0]; // "07 Agustus 2026"
+      const tanggalTeks = rows[i][0]; // "07 August 2026"
       if (!tanggalTeks) continue;
       
       const parts = tanggalTeks.split(' ');
       if (parts.length === 3) {
         const yyyy = parts[2];
-        const mm = bulanIndo[parts[1]] || '01';
-        const dd = parts[0].padStart(2, '0');
+        const mm = bulanIndo[parts[1]] || 1;
+        const dd = parseInt(parts[0], 10);
         const key = `${yyyy}-${mm}-${dd}`;
         
         history.push({
           key: key,
           in: rows[i][2], // Jam Masuk
           out: rows[i][3], // Jam Pulang
-          status: rows[i][4] // Status
+          status: rows[i][4], // Status
+          target: rows[i][7], // Target Kerja
+          log: rows[i][8] // Laporan Pekerjaan
         });
       }
     }
